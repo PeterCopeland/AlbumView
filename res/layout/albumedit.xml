@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+
+    <ImageView
+		android:id="@+id/imageView"
+		android:layout_width="750dp"
+		android:layout_height="500dp"
+	/>
+	<Button
+		android:id="@+id/editSlide"
+		android:layout_width="150dp"
+		android:layout_height="64dp"
+		android:layout_toRightOf="@+id/imageView"
+		android:text="Edit"
+		android:onClick="editSlide"
+	/>
+	<Button
+		android:id="@+id/deleteSlide"
+		android:layout_width="150dp"
+		android:layout_height="64dp"
+		android:layout_toRightOf="@+id/imageView"
+		android:layout_below="@+id/editSlide"
+		android:text="Delete"
+		android:onClick="deleteSlide"
+	/>
+
+	<HorizontalScrollView
+	    android:id="@+id/filmstrip"
+	    android:layout_width="fill_parent"
+	    android:layout_height="144dp"
+	    android:layout_alignParentBottom="true"
+	    android:layout_alignParentLeft="true"
+	    android:layout_toLeftOf="@+id/newImageSlide"
+	    android:onClick="selectSlide" >
+
+		<LinearLayout
+		    android:id="@+id/contents"
+		    android:layout_width="wrap_content"
+		    android:layout_height="fill_parent"
+		    android:orientation="horizontal" >
+
+		</LinearLayout>
+	</HorizontalScrollView>	
+	<Button
+		android:id="@+id/newImageSlide"
+		android:layout_width="150dp"
+		android:layout_height="48dp"
+		android:layout_above="@+id/addFolder"
+		android:layout_alignRight="@+id/newTitleSlide"
+		android:text="New image"
+		android:onClick="newImage"
+	/>	
+	<Button
+		android:id="@+id/addFolder"
+		android:layout_width="150dp"
+		android:layout_height="48dp"
+		android:layout_above="@+id/newTitleSlide"
+		android:layout_alignRight="@+id/newTitleSlide"
+		android:text="Add folder"
+		android:onClick="addFolder"
+	/>
+	<Button
+		android:id="@+id/newTitleSlide"
+		android:layout_width="150dp"
+		android:layout_height="48dp"
+		android:layout_alignParentBottom="true"
+		android:layout_alignParentRight="true"
+		android:text="New title"
+		android:onClick="newTitle"
+	/>
+
+		
+
+</RelativeLayout>

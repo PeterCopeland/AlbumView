@@ -1,0 +1,58 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/albumName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:text="Album name"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="64sp" />
+
+    <TextView
+        android:id="@+id/albumSubhead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/albumName"
+        android:layout_centerHorizontal="true"
+        android:text="Subhead"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="192dp"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/albumSubhead" >
+    </GridLayout>
+
+    <Button
+        android:id="@+id/buttonEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="Edit" />
+
+    <Button
+        android:id="@+id/buttonPlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="256dp"
+        android:layout_toLeftOf="@+id/buttonEdit"
+        android:text="Play" />
+
+    <Button
+        android:id="@+id/buttonDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="256dp"
+        android:layout_toRightOf="@+id/buttonEdit"
+        android:text="Delete" />
+
+</RelativeLayout>
