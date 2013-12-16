@@ -161,13 +161,17 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		
 		// Start the slide loader
 		loader = Controller.getController().getLoader();
+		Log.d("AlbumPlay", "Starting loader");
 		loader.start();
+		Log.d("AlbumPlay", "Started loader");
 		
 		// Load the current slide
 		slides = album.getSlides();
 		slideIterator = slides.listIterator(index);
 		currentSlide = slideIterator.next();
+		Log.d("AlbumPlay", "Getting displayer for current slide");
 		AndroidDisplayer disp = (AndroidDisplayer)loader.waitForDisplayer(currentSlide, Displayer.Loaded);
+		Log.d("AlbumPlay", "Got displayer");
 		switcher.addView(disp.getView(this));
 		
 		// TODO: Preload adjacent slides
