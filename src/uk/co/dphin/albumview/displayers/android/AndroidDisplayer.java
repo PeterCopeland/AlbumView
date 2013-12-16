@@ -11,10 +11,13 @@ public abstract class AndroidDisplayer implements Displayer
 	private int width;
 	private int height;
 	
+	private int state;
+	
 	public AndroidDisplayer(Slide s)
 	{
 		slide = s;
 		hasDimensions = false;
+		state = Displayer.Unloaded;
 	}
 	
 	public Slide getSlide()
@@ -52,5 +55,15 @@ public abstract class AndroidDisplayer implements Displayer
 	public int getWidth()
 	{
 		return width;
+	}
+	
+	public int getState()
+	{
+		return state;
+	}
+	
+	protected void setState(int state)
+	{
+		this.state = state;
 	}
 }

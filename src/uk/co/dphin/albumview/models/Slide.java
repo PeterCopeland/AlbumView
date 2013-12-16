@@ -10,7 +10,7 @@ import uk.co.dphin.albumview.displayers.*;
 public abstract class Slide
 {
  	/**
-	 * Prepare a displayer for this slide, and return it
+	 * Return a displayer for this slide, preparing it if necessary
 	 */
-	public abstract Displayer prepareDisplayer();
+	public abstract Displayer getDisplayer();
 }

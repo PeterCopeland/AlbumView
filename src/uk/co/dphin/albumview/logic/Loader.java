@@ -8,6 +8,8 @@ import uk.co.dphin.albumview.displayers.Displayer;
 import uk.co.dphin.albumview.displayers.android.AndroidDisplayer;
 import uk.co.dphin.albumview.models.Album;
 import uk.co.dphin.albumview.models.Slide;
+import java.util.concurrent.*;
+import android.util.*;
 
 /**
  * Handles background loading of images
@@ -24,18 +26,12 @@ public class Loader extends Thread {
 	 */
 	public static final int readAheadReduced = 3;
 	
-	private Album album;
-	private Slide prevSlide;
-	private AndroidDisplayer prevDisplayer;
-	private Slide currentSlide;
-	private AndroidDisplayer displayer;
-	private Slide nextSlide;
-	private AndroidDisplayer nextDisplayer;
+	private BlockingDeque<QueueAction> loadQueue;
 	
-	private int firstLoaded;
-	private int currentIndex;
-	private int lastLoaded;
-	private int targetIndex;
+	public Loader()
+	{
+		loadQueue = new LinkedBlockingDeque<QueueAction>();
+	}
 	
 	/* (non-Javadoc)
 	 * @see java.lang.Thread#run()
@@ -44,94 +40,97 @@ public class Loader extends Thread {
 	public void run() {
 		while (true)
 		{
-			if (currentIndex != targetIndex)
-			{
-				int pointerDifference = Math.abs(currentIndex - targetIndex);
-				List<Slide> slides = album.getSlides();
-				ListIterator<Slide> iterator;
-				int lastToRead;
-				if (currentIndex < targetIndex)
-				{
-					// Initialise the iterator, pointing at the first loaded slide
-					iterator = slides.listIterator(firstLoaded);
-					// Get the index we'll stop at - normally the target index + readahead, but can't go beyond the end of the album
-					lastToRead = Math.min(targetIndex + readAheadReduced, slides.size());
-					while (iterator.nextIndex() <= lastToRead)
-					{
-						int index = iterator.nextIndex();
-						Slide s = iterator.next();
-						Displayer disp = s.prepareDisplayer();
-						// If this slide is not needed after the move, unload its displayer
-						if (index < targetIndex - readAheadFull)
-							disp.deactivated();
-						if (index < targetIndex - readAheadReduced)
-						{
-							disp.unload();
-							firstLoaded++;
-						}
-						
-						// If this slide is needed after the move, load its displayer
-						if (index >= targetIndex - readAheadReduced)
-						{
-							disp.prepare();
-							lastLoaded++;
-						}
-						if (index >= targetIndex - readAheadFull)
-						{
-							disp.selected();
-							currentIndex++;
-						}
-					}
-				}
-				else
-				{
-					// Initialise the iterator, pointing at the first loaded slide
-					iterator = slides.listIterator(lastLoaded);
-					// Get the index we'll stop at - normally the target index + readahead, but can't go beyond the end of the album
-					lastToRead = Math.max(targetIndex - readAheadReduced, 0);
-					while (iterator.nextIndex() >= lastToRead)
-					{
-						int index = iterator.nextIndex();
-						Slide s = iterator.next();
-						Displayer disp = s.prepareDisplayer();
-						// If this slide is not needed after the move, unload its displayer
-						if (index < targetIndex - readAheadFull)
-							disp.deactivated();
-						if (index < targetIndex - readAheadReduced)
-						{
-							disp.unload();
-							lastLoaded--;
-						}
-						
-						// If this slide is needed after the move, load its displayer
-						if (index >= targetIndex - readAheadReduced)
-						{
-							disp.prepare();
-							firstLoaded--;
-						}
-						if (index >= targetIndex - readAheadFull)
-						{
-							disp.selected();
-							currentIndex--;
-						}
-					}
-				}
-			}
 			try {
-				sleep(1000);
+				QueueAction action = loadQueue.takeFirst();
+				synchronized(this)
+				{
+					Displayer disp = action.slide.getDisplayer();
+					// We don't store the displayer's state because that will change as we run these methods
+					// TODO: Check the displayer isn't also queued for unloading, or allow unload command to remove it from the queue
+					if (disp.getState() < action.minState)
+					{
+						if (action.minState >= Displayer.Preparing && disp.getState() < Displayer.Preparing)
+							disp.prepare();
+						// No need for a specific check for Prepared state - the loader is a single thread
+						if (action.minState >= Displayer.Loading && disp.getState() < Displayer.Loading)
+							disp.selected();
+						// Ditto no specific check for Loaded state
+					}
+					// Notify anything waiting for the loader that we've achieved something
+					notify();
+				}
 			} catch (InterruptedException e) {
-				// Interrupted - loop round again to see if we need to load stuff
+				// Not interested in interruptions - the queue handles our notifications.
+				// Just go round and get the next action
 			}
-		}
-		
-		
+		}	
 	}
 	
-	public synchronized void setTargetIndex(int index)
+	/**
+	 * Gets a displayer for the specified slide, 
+	 * halting execution until it is available.
+	 * This load takes priority over any other queued action.
+	 * @param slide
+	 * @param minState Put the displayer in this state if it's in a lower state
+	 */
+	public Displayer waitForDisplayer(Slide slide, int minState)
 	{
-		targetIndex = index;
-		notify();
+		Displayer disp = slide.getDisplayer();
+		if (disp.getState() < minState)
+		{
+			synchronized(this)
+			{
+				// Add an instruction to load this displayer as a priority, then wait for it to be available
+				loadDisplayer(slide, minState, true);
+				do
+				{
+					try
+					{
+						this.wait();
+					}
+					catch (InterruptedException e)
+					{
+						// We get notified when the load thread loads a displayer,
+						// so fall through and test if it's what we wanted
+					}
+				}
+				while (disp.getState() < minState);
+			}
+			
+		}
+		return disp;
+		
 	}
 	
+	/**
+	 * Adds a displayer to the load queue and returns immediately.
+	 *
+	 * This method does not check if the displayer is already loaded,
+	 * or if it's already queued for loading, but this is checked before
+	 * the load is actually performed in the thread's loop.
+	 *
+	 * @param slide
+	 * @param minState Load the displayer in this state or higher
+	 * @param prioritise If true, this load will be added to the front of the queue. If false, it's added to the back.
+	 */
+	public void loadDisplayer(Slide slide, int minState, boolean prioritise)
+	{
+		QueueAction qa = new QueueAction();
+		qa.slide = slide;
+		qa.minState = minState;
+		
+		if (prioritise)
+			loadQueue.addFirst(qa);
+		else
+			loadQueue.addLast(qa);
+		
+	}
+	
+	private class QueueAction
+	{
+		public Slide slide;
+		public Displayer displayer;
+		public int minState;
+	}
 	
 }

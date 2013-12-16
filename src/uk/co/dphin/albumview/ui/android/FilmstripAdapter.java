@@ -27,7 +27,7 @@ public class FilmstripAdapter extends ArrayAdapter<Slide>
 			img = (ImageView)convertView;
 			
 		ImageSlide slide = (ImageSlide)this.getItem(position);
-		AndroidImageDisplayer disp = (AndroidImageDisplayer)slide.prepareDisplayer();
+		AndroidImageDisplayer disp = (AndroidImageDisplayer)slide.getDisplayer();
 		disp.setDimensions(192,128);
 		disp.prepare();
 		img.setImageBitmap(disp.getImage());

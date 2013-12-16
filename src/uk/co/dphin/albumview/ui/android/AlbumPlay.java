@@ -48,6 +48,7 @@ import android.widget.ViewSwitcher;
 import android.widget.ViewSwitcher.ViewFactory;
 import android.support.v4.app.NavUtils;
 import android.support.v4.view.MotionEventCompat;
+import uk.co.dphin.albumview.logic.*;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -89,6 +90,8 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 	private int index;
 	private int forwardIndex;
 	private int reverseIndex;
+	
+	private Slide currentSlide;
 	
 	private RelativeLayout frame;
 	private ViewSwitcher switcher;
@@ -156,47 +159,18 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		album = albMan.loadAlbum(intent.getIntExtra("album", 0));
 		index = intent.getIntExtra("slide", 0);
 		
-		// Load the current slide and the ones either size at screen size
+		// Start the slide loader
+		loader = Controller.getController().getLoader();
+		loader.start();
+		
+		// Load the current slide
 		slides = album.getSlides();
 		slideIterator = slides.listIterator(index);
-		
-		forwardIterator = slides.listIterator(index);
-		forwardIndex = index;
-		reverseIterator = slides.listIterator(index);
-		reverseIndex = index;
-		for (int i=0; i<readAhead; i++)
-		{
-			if (forwardIterator.hasNext())
-			{
-				nextSlide = forwardIterator.next();
-				AndroidDisplayer disp = (AndroidDisplayer)nextSlide.prepareDisplayer();
-				disp.setDimensions(metrics.widthPixels, metrics.heightPixels);
-				disp.prepare();
-				forwardIndex++;
-			}
-			if (reverseIterator.hasPrevious())
-			{
-				prevSlide = reverseIterator.previous();
-				AndroidDisplayer disp = (AndroidDisplayer)prevSlide.prepareDisplayer();
-				disp.setDimensions(metrics.widthPixels, metrics.heightPixels);
-				disp.prepare();
-				reverseIndex--;
-			}
-		}
-		
-		Log.d("AlbumPlay", "Created slideIterator with "+slides.size()+", iterator index is "+slideIterator.nextIndex()+", forward index is "+forwardIndex+", reverse index is "+reverseIndex);
-		
-		// Activate the current slide. It will have already been prepared by the forward iterator.
 		currentSlide = slideIterator.next();
-		displayer = (AndroidDisplayer)currentSlide.prepareDisplayer();
-		displayer.selected();
-		displayer.active();
+		AndroidDisplayer disp = (AndroidDisplayer)loader.waitForDisplayer(currentSlide, Displayer.Loaded);
+		switcher.addView(disp.getView(this));
 		
-		// Display the current slide
-		View view = displayer.getView(this);
-		switcher.addView(view);
-		
-		// Set up events
+		// TODO: Preload adjacent slides
 		
 		
 	}
@@ -247,24 +221,12 @@ Log.d("AlbumPlay", "Not horizontal");
 		}
 		
 		// Which direction?
-		if (velocityX < 0 && nextSlide != null)
-		{
-//Log.d("AlbumPlay", "Right");
+		if (velocityX < 0)
 			changeSlide(1);
-			return true;
-		}
-		else if (velocityX > 0 && prevSlide != null)
-		{
-//Log.d("AlbumPlay", "Left");
-			changeSlide(-1);
-			return true;
-		}
 		else
-		{
-Log.d("AlbumPlay", "No more slides");
-			return false;
-		}
+			changeSlide(-1);
 		
+		return true;
 	}
 	
 	// TODO: Support for moveBy != 1
@@ -278,7 +240,7 @@ Log.d("AlbumPlay", "No more slides");
 			return;
 		}
 		
-		final AndroidDisplayer oldDisplayer = (AndroidDisplayer)currentSlide.prepareDisplayer();
+		final AndroidDisplayer oldDisplayer = (AndroidDisplayer)currentSlide.getDisplayer();
 		oldDisplayer.deselected();
 		Slide newSlide;
 		boolean moved = false;
@@ -307,8 +269,8 @@ Log.d("AlbumPlay", "No more slides");
 			return;
 		}
 		
-		final AndroidDisplayer newDisplayer = (AndroidDisplayer)newSlide.prepareDisplayer();
-		newDisplayer.selected();		
+		final AndroidDisplayer newDisplayer = (AndroidDisplayer)loader.waitForDisplayer(newSlide,Displayer.Loaded);
+		newDisplayer.selected();
 		
 		// Switch the view
 		Animation inTransition, outTransition;
@@ -336,8 +298,6 @@ Log.d("AlbumPlay", "No more slides");
 			}
 			public void onAnimationEnd(Animation arg0) {
 				Log.i("OutTransition", "Ended");
-				
-					
 			}
 			public void onAnimationRepeat(Animation arg0) {}
 		});
@@ -347,52 +307,10 @@ Log.d("AlbumPlay", "No more slides");
 				Log.i("InTransition", "Started");}
 			public void onAnimationEnd(Animation arg0) {
 				Log.i("InTransition", "Ended");
-				// TODO: Move all pointers, preload next slide
+				// TODO: Move all pointers, preload next slide(s)
 				newDisplayer.active();
 				oldDisplayer.deactivated();
 				switcher.removeView(oldView);
-				
-				int readCount = 0;
-				
-				// Read ahead the same number of slides that we moved by, unless we hit the end of the album
-				// And deactivate slides we've moved away from
-				while (readCount < moveBy)
-				{
-					if (forwards)
-					{
-						if (forwardIterator.hasNext())
-						{
-							Slide s = forwardIterator.next();
-							AndroidDisplayer d = (AndroidDisplayer)s.prepareDisplayer();
-							d.setDimensions(metrics.widthPixels, metrics.heightPixels);
-							d.prepare();
-						}
-						if (reverseIterator.nextIndex() + readAhead < slideIterator.nextIndex())
-						{
-							Slide s = reverseIterator.next();
-							AndroidDisplayer d = (AndroidDisplayer)s.prepareDisplayer();
-							d.unload();
-						}
-					}
-					else 
-					{
-						if (reverseIterator.hasPrevious())
-						{
-							Slide s = reverseIterator.previous();
-							AndroidDisplayer d = (AndroidDisplayer)s.prepareDisplayer();
-							d.setDimensions(metrics.widthPixels, metrics.heightPixels);
-							d.prepare();
-						}
-						if (forwardIterator.nextIndex() - readAhead > slideIterator.nextIndex())
-						{
-							Slide s = forwardIterator.previous();
-							AndroidDisplayer d = (AndroidDisplayer)s.prepareDisplayer();
-							d.unload();
-						}
-					}
-					readCount++;
-				}
-				
 			}
 			public void onAnimationRepeat(Animation arg0) {}
 		});
@@ -403,121 +321,6 @@ Log.d("AlbumPlay", "No more slides");
 		
 	}
 	
-	private void nextSlide()
-	{
-		// Set the correct animations
-		switcher.setInAnimation(nextInTransition);
-		switcher.setOutAnimation(nextOutTransition);
-		
-		// Load the next slide at full size
-		// TODO: Shouldn't have to re-prepare - move the relevant call
-		nextDisplayer.setDimensions(0, 0);
-		nextDisplayer.prepare();
-		nextDisplayer.selected();
-		
-		// Switch the view
-		// TODO: Handle non-image slides
-		//switcher.setImageDrawable(new BitmapDrawable(getResources(), ((AndroidImageDisplayer)nextDisplayer).getImage()));
-		// TODO: Deactivate and unload when the animation stops. There doesn't seem to be a notification event, but we could make our own animation with a set time and deactivate after that.
-		nextOutTransition.setAnimationListener(new AnimationListener()
-		{
-
-			@Override
-			public void onAnimationStart(Animation animation) {
-				// Unload the previous slides
-				if (prevDisplayer != null)
-					prevDisplayer.unload();
-				displayer.deselected();
-			}
-
-			public void onAnimationEnd(Animation animation) {
-				displayer.deactivated();
-				displayer.unload();
-			}
-			public void onAnimationRepeat(Animation animation) {}
-			
-		});
-		nextInTransition.setAnimationListener(new AnimationListener()
-		{
-			public void onAnimationStart(Animation animation) {}
-			public void onAnimationEnd(Animation animation) {
-				nextDisplayer.active();
-				
-				// Shift all the pointers along
-				prevSlide = currentSlide;
-				prevDisplayer = displayer;
-				currentSlide = nextSlide;
-				displayer = nextDisplayer;
-				nextSlide = null;
-				nextDisplayer = null;
-				index++;
-				
-				// Load the next slide
-				if (slideIterator.hasNext())
-				{
-					nextSlide = slideIterator.next();
-					nextDisplayer = (AndroidDisplayer) nextSlide.prepareDisplayer();
-					nextDisplayer.setDimensions(metrics.widthPixels, metrics.heightPixels);
-Log.i("AlbumPlay", "Dimensions for next slide set to "+metrics.widthPixels+"x"+metrics.heightPixels);
-					nextDisplayer.prepare();
-				}
-				Log.i("AlbumPlay", "Next slide: moved to slide "+index+((nextSlide == null) ? " - this is the last slide":""));
-			}
-
-			@Override
-			public void onAnimationRepeat(Animation animation) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-		});
-		
-		
-	}
-	
-	private void prevSlide()
-	{
-		// Set the correct animations
-		switcher.setInAnimation(prevInTransition);
-		switcher.setOutAnimation(prevOutTransition);
-		
-		// Load the next slide at full size
-		// TODO: Shouldn't have to re-prepare - move the relevant call
-		prevDisplayer.setDimensions(0, 0);
-		prevDisplayer.prepare();
-		prevDisplayer.selected();
-		
-		// Unload the previous slides
-		if (nextDisplayer != null)
-			nextDisplayer.unload();
-		displayer.deselected();
-		
-		// Switch the view
-		// TODO: Handle non-image slides
-		//switcher.setImageDrawable(new BitmapDrawable(getResources(), ((AndroidImageDisplayer)prevDisplayer).getImage()));
-		displayer.deactivated();
-		prevDisplayer.active();
-		//displayer.unload();
-		
-		// Shift all the pointers along
-		nextSlide = currentSlide;
-		nextDisplayer = displayer;
-		currentSlide = prevSlide;
-		displayer = prevDisplayer;
-		index--;
-		
-		// Load the next slide
-		if (slideIterator.hasPrevious())
-		{
-			prevSlide = slideIterator.previous();
-			prevDisplayer = (AndroidDisplayer) nextSlide.prepareDisplayer();
-			prevDisplayer.setDimensions(metrics.widthPixels, metrics.heightPixels);
-Log.i("AlbumPlay", "Dimensions for next slide set to "+metrics.widthPixels+"x"+metrics.heightPixels);
-			prevDisplayer.prepare();
-		}
-		Log.i("AlbumPlay", "Prev slide: moved to slide "+index+((prevSlide == null) ? " - this is the first slide":""));
-	}
-
 	@Override
 	public void onLongPress(MotionEvent e) {
 		// TODO Auto-generated method stub

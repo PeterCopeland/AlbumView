@@ -92,7 +92,7 @@ Log.i("AlbumPlayPaused", "Starting play at slide "+activeSlideNum);
 		if (activeSlide != null)
 		{
 			
-			final AndroidImageDisplayer disp = (AndroidImageDisplayer)activeSlide.prepareDisplayer();
+			final AndroidImageDisplayer disp = (AndroidImageDisplayer)activeSlide.getDisplayer();
 
 			// Wait for the image view to initialise so we can get its dimensions
 			final ImageView imgView = (ImageView)findViewById(R.id.imageView);
@@ -163,7 +163,7 @@ Log.i("AlbumPlayPaused", "Active slide set to "+activeSlideNum);
 	// TODO: Use getView
 	private void updateImage()
 	{
-		AndroidImageDisplayer disp = (AndroidImageDisplayer)activeSlide.prepareDisplayer();
+		AndroidImageDisplayer disp = (AndroidImageDisplayer)activeSlide.getDisplayer();
 		ImageView imgView = (ImageView)findViewById(R.id.imageView);
 		disp.setDimensions(imgView.getWidth(), imgView.getHeight());
 		disp.prepare();
@@ -186,7 +186,7 @@ Log.i("AlbumPlayPaused", "Active slide set to "+activeSlideNum);
 		for (Slide s : album.getSlides())
 		{
 			ImageView iv = new ImageView(this);
-			AndroidImageDisplayer disp = (AndroidImageDisplayer)s.prepareDisplayer();
+			AndroidImageDisplayer disp = (AndroidImageDisplayer)s.getDisplayer();
 			disp.setDimensions(filmstrip.getHeight(), filmstrip.getHeight());
 			disp.prepare();
 			iv.setImageBitmap(disp.getImage());

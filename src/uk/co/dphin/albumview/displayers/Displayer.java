@@ -3,6 +3,27 @@ package uk.co.dphin.albumview.displayers;
 public interface Displayer
 {
 	/**
+	 * The displayer is in its base state with no resources loaded
+	 */
+	public final static int Unloaded = 0;
+	/**
+	 * The displayer is loading its basic parts
+	 */
+	 public final static int Preparing = 1;
+	/**
+	 * The displayer has performed basic loading
+	 */
+	public final static int Prepared = 2;
+	/**
+	 * The displayer is loading its main parts
+	 */
+	public final static int Loading = 3;
+	/**
+	 * The displayer is fully loaded
+	 */
+	public final static int Loaded = 4;
+	
+	/**
 	 * Sets the dimensions at which this slide will be displayed.
 	 * When showing the slide itself, this should be the screen dimensions.
 	 * When showing in the filmstrip (or similar), a reduced size will be used.
@@ -43,4 +64,10 @@ public interface Displayer
 	 * in which case it will be reloaded.
 	 */
 	public void unload();
+	
+	/**
+	 * Get the current state of this displayer
+	 */
+	public int getState();
+	
 }

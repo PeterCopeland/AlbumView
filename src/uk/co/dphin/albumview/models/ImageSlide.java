@@ -7,7 +7,7 @@ public class ImageSlide extends Slide
 	private String imagePath;
 	private ImageDisplayer disp;
 	
-	public ImageDisplayer prepareDisplayer()
+	public ImageDisplayer getDisplayer()
 	{
 		// TODO: Get correct displayer for the system
 		if (disp == null)

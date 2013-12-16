@@ -51,8 +51,9 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	 */
 	public void prepare()
 	{
+		setState(Displayer.Preparing);
 		loadImage();
-
+		setState(Displayer.Prepared);
 	}
 	
 	/**
@@ -62,7 +63,7 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	 */
 	public void selected()
 	{
-		Log.i("AndroidImageDisplayer", "Selected image "+imagePath);
+		setState(Displayer.Loading);
 		if (imageIsReduced)
 		{
 			this.fullImage = BitmapFactory.decodeFile(imagePath);
@@ -71,6 +72,7 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 		{
 			this.fullImage = this.image;
 		}
+		setState(Displayer.Loaded);
 	}
 	
 	public void active()
@@ -88,6 +90,7 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	 */
 	public void deactivated()
 	{
+		setState(Displayer.Prepared);
 		// Only recycle the image now if the full size version is separate from the reduced version
 		if (imageIsReduced && this.fullImage != null && !this.fullImage.isRecycled())
 		{
@@ -104,7 +107,7 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	 */
 	public void unload()
 	{
-		Log.i("AndroidImageDisplayer", "Recycling "+imagePath);
+		setState(Displayer.Unloaded);
 		if (this.image != null && !this.image.isRecycled())
 			this.image.recycle();
 		this.image = null;

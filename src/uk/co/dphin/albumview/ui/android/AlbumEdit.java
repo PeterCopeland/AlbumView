@@ -91,7 +91,7 @@ public class AlbumEdit extends Activity
 		if (activeSlide != null)
 		{
 			
-			final AndroidImageDisplayer disp = (AndroidImageDisplayer)activeSlide.prepareDisplayer();
+			final AndroidImageDisplayer disp = (AndroidImageDisplayer)activeSlide.getDisplayer();
 
 			// Wait for the image view to initialise so we can get its dimensions
 			final ImageView imgView = (ImageView)findViewById(R.id.imageView);
@@ -233,7 +233,7 @@ public class AlbumEdit extends Activity
 	
 	private void updateImage()
 	{
-		AndroidImageDisplayer disp = (AndroidImageDisplayer)activeSlide.prepareDisplayer();
+		AndroidImageDisplayer disp = (AndroidImageDisplayer)activeSlide.getDisplayer();
 		ImageView imgView = (ImageView)findViewById(R.id.imageView);
 		Log.i("Add image", "Width: "+imgView.getWidth()+" height: "+imgView.getHeight());
 		disp.setDimensions(imgView.getWidth(), imgView.getHeight());
@@ -257,7 +257,7 @@ public class AlbumEdit extends Activity
 		for (Slide s : album.getSlides())
 		{
 			ImageView iv = new ImageView(this);
-			AndroidImageDisplayer disp = (AndroidImageDisplayer)s.prepareDisplayer();
+			AndroidImageDisplayer disp = (AndroidImageDisplayer)s.getDisplayer();
 			disp.setDimensions(filmstrip.getHeight(), filmstrip.getHeight());
 			disp.prepare();
 			iv.setImageBitmap(disp.getImage());

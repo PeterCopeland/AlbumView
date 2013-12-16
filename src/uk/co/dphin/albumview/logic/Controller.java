@@ -11,6 +11,7 @@ public class Controller
 {
 	private static Controller cont;
 	private Album currentAlbum;
+	private Loader loader;
 	
 	/**
 	 * Gets the current controller object
@@ -27,10 +28,20 @@ public class Controller
 	public void setAlbum(Album a)
 	{
 		currentAlbum = a;
+		loader = null;
 	}
 	
 	public Album getAlbum()
 	{
 		return currentAlbum;
+	}
+	
+	public Loader getLoader()
+	{
+		if (loader == null)
+		{
+			loader = new Loader();
+		}
+		return loader;
 	}
 }
