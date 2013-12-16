@@ -17,7 +17,7 @@ public class Album
 	
 	public Album()
 	{
-		slides = new LinkedList<Slide>();
+		slides = new ArrayList<Slide>();
 		created = new Date();
 	}
 	
