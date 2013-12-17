@@ -94,10 +94,8 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 		// Only recycle the image now if the full size version is separate from the reduced version
 		if (imageIsReduced && this.fullImage != null && !this.fullImage.isRecycled())
 		{
-			Log.i("AndroidImageDisplayer", "Recycling "+imagePath+" full size");
 			this.fullImage.recycle();
 		}
-		Log.i("AndroidImageDisplayer", "Deactivated "+imagePath+" - not recycling");
 		this.fullImage = null;
 	}
 	
@@ -143,8 +141,6 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	{
 		//if (image == null || image.isRecycled())
 			loadImage();
-
-		Log.i("AndroidImageDisplayer", "Get image: "+imagePath+", size "+image.getWidth()+"x"+image.getHeight()+"; wanted "+getWidth()+"x"+getHeight());
 		
 		return image;
 	}
@@ -187,7 +183,6 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 		// Load the image at the correct sample size
 		options.inJustDecodeBounds = false;
 
-		Log.i("AndroidImageDisplayer", "Loading image "+imagePath+" with sample size "+options.inSampleSize);
 		this.image = BitmapFactory.decodeFile(imagePath, options);
 	}
 	

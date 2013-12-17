@@ -38,12 +38,16 @@ public class Loader extends Thread {
 	 */
 	@Override
 	public void run() {
+		Log.d("Loader", "Starting loader thread");
 		while (true)
 		{
 			try {
+				Log.d("Loader", "Waiting for item");
 				QueueAction action = loadQueue.takeFirst();
+				Log.d("Loader", "Got item, locking monitor");
 				synchronized(this)
 				{
+					Log.d("Loader", "Got monitor lock, preparing displayer");
 					Displayer disp = action.slide.getDisplayer();
 					// We don't store the displayer's state because that will change as we run these methods
 					// TODO: Check the displayer isn't also queued for unloading, or allow unload command to remove it from the queue
@@ -57,9 +61,11 @@ public class Loader extends Thread {
 						// Ditto no specific check for Loaded state
 					}
 					// Notify anything waiting for the loader that we've achieved something
+					Log.d("Loader", "Notifying waiting object");
 					notify();
 				}
 			} catch (InterruptedException e) {
+				Log.d("Loader", "Received notification");
 				// Not interested in interruptions - the queue handles our notifications.
 				// Just go round and get the next action
 			}
