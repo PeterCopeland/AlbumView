@@ -2,6 +2,7 @@ package uk.co.dphin.albumview.displayers;
 
 public interface Displayer
 {
+	// TODO: Rename constants to make distinction between basic & full loading clearer
 	/**
 	 * The displayer is in its base state with no resources loaded
 	 */

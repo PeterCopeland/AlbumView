@@ -46,8 +46,6 @@ import android.widget.Toast;
 import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 import android.widget.ViewSwitcher.ViewFactory;
-import android.support.v4.app.NavUtils;
-import android.support.v4.view.MotionEventCompat;
 import uk.co.dphin.albumview.logic.*;
 
 /**
@@ -161,21 +159,41 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		
 		// Start the slide loader
 		loader = Controller.getController().getLoader();
-		Log.d("AlbumPlay", "Starting loader");
 		loader.start();
-		Log.d("AlbumPlay", "Started loader");
 		
 		// Load the current slide
 		slides = album.getSlides();
 		slideIterator = slides.listIterator(index);
 		currentSlide = slideIterator.next();
-		Log.d("AlbumPlay", "Getting displayer for current slide");
 		AndroidDisplayer disp = (AndroidDisplayer)loader.waitForDisplayer(currentSlide, Displayer.Loaded);
-		Log.d("AlbumPlay", "Got displayer");
 		switcher.addView(disp.getView(this));
 		
-		// TODO: Preload adjacent slides
+		forwardIterator = slides.listIterator(index);
+		reverseIterator = slides.listIterator(index);
+
+		// Preload adjacent slides
+		// TODO: May need to adjust starting point
+		int aheadLoaded = 0;
+		int behindLoaded = 0;
+		// Start by moving the forward iterator ahead of the current slide
+		if (forwardIterator.hasNext())
+		{
+			forwardIterator.next();
+			while (forwardIterator.hasNext() && aheadLoaded < Loader.readAheadReduced)
+			{
+				Slide s = forwardIterator.next();
+				loader.loadDisplayer(s, (aheadLoaded < Loader.readAheadFull ? Displayer.Prepared : Displayer.Loaded), false);
+				aheadLoaded++;
+			}
+		}
 		
+		// No need to move the reverse iterator
+		while (reverseIterator.hasPrevious() && behindLoaded < Loader.readAheadReduced)
+		{
+			Slide s = reverseIterator.previous();
+			loader.loadDisplayer(s, (behindLoaded < Loader.readAheadFull ? Displayer.Prepared : Displayer.Loaded), false);
+			behindLoaded++;
+		}
 		
 	}
 	
@@ -315,6 +333,59 @@ Log.d("AlbumPlay", "Not horizontal");
 				newDisplayer.active();
 				oldDisplayer.deactivated();
 				switcher.removeView(oldView);
+				
+				/* Preload next slides & unload previous slides
+				   1. Cancel loading any slides we don't want
+				   2. Unload any slides we've already loaded but don't want
+				   3. Add slides we do want to the queue */
+				if (forwards)
+				{
+					while (reverseIterator.nextIndex()+Loader.readAheadFull < slideIterator.nextIndex())
+					{
+						boolean keepReduced = (reverseIterator.nextIndex() + Loader.readAheadReduced >= slideIterator.nextIndex());
+						
+						Slide unloadSlide = reverseIterator.next();
+						// Do we want to keep a partial copy of this?
+						if (keepReduced)
+							loader.cancelLoading(unloadSlide, Displayer.Prepared);
+						else
+							loader.cancelLoading(unloadSlide);
+					}
+					
+					while (forwardIterator.nextIndex()-Loader.readAheadReduced < slideIterator.nextIndex())
+					{
+						boolean full = (forwardIterator.nextIndex()-Loader.readAheadFull <= slideIterator.nextIndex());
+						if (full)
+							loader.loadDisplayer(forwardIterator.next(), Displayer.Loaded);
+						else
+							loader.loadDisplayer(forwardIterator.next(), Displayer.Prepared);
+								
+					}
+				}
+				else
+				{
+					while (forwardIterator.previousIndex()-Loader.readAheadFull > slideIterator.nextIndex())
+					{
+						boolean keepReduced = (forwardIterator.previousIndex() - Loader.readAheadReduced <= slideIterator.previousIndex());
+
+						Slide unloadSlide = forwardIterator.previous();
+						// Do we want to keep a partial copy of this?
+						if (keepReduced)
+							loader.cancelLoading(unloadSlide, Displayer.Prepared);
+						else
+							loader.cancelLoading(unloadSlide);
+					}
+
+					while (reverseIterator.previousIndex()+Loader.readAheadReduced > slideIterator.previousIndex())
+					{
+						boolean full = (reverseIterator.previousIndex()+Loader.readAheadFull >= slideIterator.previousIndex());
+						if (full)
+							loader.loadDisplayer(reverseIterator.previous(), Displayer.Loaded);
+						else
+							loader.loadDisplayer(reverseIterator.previous(), Displayer.Prepared);
+
+					}
+				}
 			}
 			public void onAnimationRepeat(Animation arg0) {}
 		});

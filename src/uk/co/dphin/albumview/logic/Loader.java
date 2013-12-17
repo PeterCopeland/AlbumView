@@ -10,6 +10,7 @@ import uk.co.dphin.albumview.models.Album;
 import uk.co.dphin.albumview.models.Slide;
 import java.util.concurrent.*;
 import android.util.*;
+import java.util.*;
 
 /**
  * Handles background loading of images
@@ -38,34 +39,31 @@ public class Loader extends Thread {
 	 */
 	@Override
 	public void run() {
-		Log.d("Loader", "Starting loader thread");
 		while (true)
 		{
 			try {
-				Log.d("Loader", "Waiting for item");
 				QueueAction action = loadQueue.takeFirst();
-				Log.d("Loader", "Got item, locking monitor");
 				synchronized(this)
 				{
-					Log.d("Loader", "Got monitor lock, preparing displayer");
 					Displayer disp = action.slide.getDisplayer();
 					// We don't store the displayer's state because that will change as we run these methods
 					// TODO: Check the displayer isn't also queued for unloading, or allow unload command to remove it from the queue
 					if (disp.getState() < action.minState)
 					{
 						if (action.minState >= Displayer.Preparing && disp.getState() < Displayer.Preparing)
+						{
+							disp.setDimensions(1280,720); // TODO: From screen, or can we get the OpenGL max texture size?
 							disp.prepare();
+						}
 						// No need for a specific check for Prepared state - the loader is a single thread
 						if (action.minState >= Displayer.Loading && disp.getState() < Displayer.Loading)
 							disp.selected();
 						// Ditto no specific check for Loaded state
 					}
 					// Notify anything waiting for the loader that we've achieved something
-					Log.d("Loader", "Notifying waiting object");
 					notify();
 				}
 			} catch (InterruptedException e) {
-				Log.d("Loader", "Received notification");
 				// Not interested in interruptions - the queue handles our notifications.
 				// Just go round and get the next action
 			}
@@ -108,6 +106,11 @@ public class Loader extends Thread {
 		
 	}
 	
+	public void loadDisplayer(Slide slide, int minState)
+	{
+		loadDisplayer(slide, minState, false);
+	}
+	
 	/**
 	 * Adds a displayer to the load queue and returns immediately.
 	 *
@@ -130,6 +133,42 @@ public class Loader extends Thread {
 		else
 			loadQueue.addLast(qa);
 		
+	}
+	
+	/**
+	 * Cancels loading a displayer.
+	 * Does not unload a displayer that has already been loaded
+	 */
+	public synchronized void cancelLoading(Slide slide)
+	{
+		cancelLoading(slide, Displayer.Unloaded);
+	}
+	
+	/**
+	 * Cancels loading a displayer, or reduces it to load at a lower state.
+	 * Does not unload a displayer that has already been loaded.
+	 */
+	public synchronized void cancelLoading(Slide slide, int maxState)
+	{
+		// Build a new queue with the actions we want to keep, then swap it with the original queue
+		BlockingDeque<QueueAction> newQueue = new LinkedBlockingDeque<QueueAction>();
+		for (QueueAction qa : loadQueue)
+		{
+			if (qa.slide == slide)
+			{
+				// Slide matches - check the state being loaded
+				if (maxState != Displayer.Unloaded)
+				{
+					if (qa.minState > maxState)
+						qa.minState = maxState;
+					newQueue.add(qa);
+				}
+			}
+			else
+				// No action on this slide
+				newQueue.add(qa);
+		}
+		loadQueue = newQueue;
 	}
 	
 	private class QueueAction
