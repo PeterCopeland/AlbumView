@@ -32,6 +32,7 @@ public class Loader extends Thread {
 	public Loader()
 	{
 		loadQueue = new LinkedBlockingDeque<QueueAction>();
+		setName("Loader");
 	}
 	
 	/* (non-Javadoc)
@@ -42,28 +43,35 @@ public class Loader extends Thread {
 		while (true)
 		{
 			try {
-				QueueAction action = loadQueue.takeFirst();
-				synchronized(this)
+				QueueAction action = loadQueue.pollFirst(500, TimeUnit.MILLISECONDS);
+				if (action != null)
 				{
-					Displayer disp = action.slide.getDisplayer();
-					// We don't store the displayer's state because that will change as we run these methods
-					// TODO: Check the displayer isn't also queued for unloading, or allow unload command to remove it from the queue
-					if (disp.getState() < action.minState)
+	Log.i("Loader", "Main loop has task");
+					synchronized(this)
 					{
-						if (action.minState >= Displayer.Preparing && disp.getState() < Displayer.Preparing)
+	Log.i("Loader", "Main loop has lock");
+						Displayer disp = action.slide.getDisplayer();
+						// We don't store the displayer's state because that will change as we run these methods
+						// TODO: Check the displayer isn't also queued for unloading, or allow unload command to remove it from the queue
+						if (disp.getState() < action.minState)
 						{
-							disp.setDimensions(1280,720); // TODO: From screen, or can we get the OpenGL max texture size?
-							disp.prepare();
+							if (action.minState >= Displayer.Preparing && disp.getState() < Displayer.Preparing)
+							{
+								disp.setDimensions(1280,720); // TODO: From screen, or can we get the OpenGL max texture size?
+								disp.prepare();
+							}
+							// No need for a specific check for Prepared state - the loader is a single thread
+							if (action.minState >= Displayer.Loading && disp.getState() < Displayer.Loading)
+								disp.selected();
+							// Ditto no specific check for Loaded state
 						}
-						// No need for a specific check for Prepared state - the loader is a single thread
-						if (action.minState >= Displayer.Loading && disp.getState() < Displayer.Loading)
-							disp.selected();
-						// Ditto no specific check for Loaded state
+						// Notify anything waiting for the loader that we've achieved something
+	Log.i("Loader", "Main loop notifying: there are now "+loadQueue.size()+" jobs in the load queue");
+						notify();
 					}
-					// Notify anything waiting for the loader that we've achieved something
-					notify();
 				}
 			} catch (InterruptedException e) {
+Log.i("Loader", "Main loop iterrupted");
 				// Not interested in interruptions - the queue handles our notifications.
 				// Just go round and get the next action
 			}
@@ -79,17 +87,21 @@ public class Loader extends Thread {
 	 */
 	public Displayer waitForDisplayer(Slide slide, int minState)
 	{
+		Log.i("Loader", "Requested a displayer");
 		Displayer disp = slide.getDisplayer();
 		if (disp.getState() < minState)
 		{
 			synchronized(this)
 			{
+Log.i("Loader", "Got lock - requesting displayer");
 				// Add an instruction to load this displayer as a priority, then wait for it to be available
 				loadDisplayer(slide, minState, true);
 				do
 				{
 					try
 					{
+Log.i("Loader", "Released lock - requesting displayer");
+						notify();
 						this.wait();
 					}
 					catch (InterruptedException e)
@@ -106,7 +118,7 @@ public class Loader extends Thread {
 		
 	}
 	
-	public void loadDisplayer(Slide slide, int minState)
+	public synchronized void loadDisplayer(Slide slide, int minState)
 	{
 		loadDisplayer(slide, minState, false);
 	}
@@ -122,7 +134,7 @@ public class Loader extends Thread {
 	 * @param minState Load the displayer in this state or higher
 	 * @param prioritise If true, this load will be added to the front of the queue. If false, it's added to the back.
 	 */
-	public void loadDisplayer(Slide slide, int minState, boolean prioritise)
+	public synchronized void loadDisplayer(Slide slide, int minState, boolean prioritise)
 	{
 		QueueAction qa = new QueueAction();
 		qa.slide = slide;
@@ -132,7 +144,8 @@ public class Loader extends Thread {
 			loadQueue.addFirst(qa);
 		else
 			loadQueue.addLast(qa);
-		
+		Log.i("Loader", "There are now "+loadQueue.size()+" jobs in the load queue");
+		notify();
 	}
 	
 	/**

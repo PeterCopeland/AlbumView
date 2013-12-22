@@ -33,6 +33,7 @@ import android.view.View;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.ViewParent;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.LinearInterpolator;
@@ -92,7 +93,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 	private Slide currentSlide;
 	
 	private RelativeLayout frame;
-	private ViewSwitcher switcher;
+	private ViewAnimator switcher;
 	private LayoutParams layout;
 	private GestureDetector gestureDetect;
 	private Loader loader;
@@ -132,7 +133,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		
 		layout = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
 		frame = (RelativeLayout)findViewById(R.id.frame);
-		switcher = (ViewSwitcher)findViewById(R.id.switcher);
+		switcher = (ViewAnimator)findViewById(R.id.switcher);
 		//switcher.setFactory(this);
 		//frame.setLayoutParams(layout);
 		
@@ -159,7 +160,8 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		
 		// Start the slide loader
 		loader = Controller.getController().getLoader();
-		loader.start();
+		if (!loader.isAlive())
+			loader.start();
 		
 		// Load the current slide
 		slides = album.getSlides();
@@ -168,33 +170,21 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		AndroidDisplayer disp = (AndroidDisplayer)loader.waitForDisplayer(currentSlide, Displayer.Loaded);
 		switcher.addView(disp.getView(this));
 		
-		forwardIterator = slides.listIterator(index);
-		reverseIterator = slides.listIterator(index);
-
-		// Preload adjacent slides
-		// TODO: May need to adjust starting point
-		int aheadLoaded = 0;
-		int behindLoaded = 0;
-		// Start by moving the forward iterator ahead of the current slide
-		if (forwardIterator.hasNext())
+		forwardIndex = Math.min(slides.size(), index + Loader.readAheadReduced);
+		reverseIndex = Math.max(0, index - Loader.readAheadReduced);
+		
+		// Preload all slides between the forward and reverse indices
+		ListIterator<Slide> preloader = slides.listIterator(reverseIndex);
+		int preloadPointer = reverseIndex;
+		while (preloader.hasNext() && preloadPointer < forwardIndex)
 		{
-			forwardIterator.next();
-			while (forwardIterator.hasNext() && aheadLoaded < Loader.readAheadReduced)
-			{
-				Slide s = forwardIterator.next();
-				loader.loadDisplayer(s, (aheadLoaded < Loader.readAheadFull ? Displayer.Prepared : Displayer.Loaded), false);
-				aheadLoaded++;
-			}
+			Slide s = preloader.next();
+			loader.loadDisplayer(s, (Math.abs(index - preloadPointer) < Loader.readAheadFull) ? Displayer.Loaded : Displayer.Prepared);
+			preloadPointer++;
 		}
 		
-		// No need to move the reverse iterator
-		while (reverseIterator.hasPrevious() && behindLoaded < Loader.readAheadReduced)
-		{
-			Slide s = reverseIterator.previous();
-			loader.loadDisplayer(s, (behindLoaded < Loader.readAheadFull ? Displayer.Prepared : Displayer.Loaded), false);
-			behindLoaded++;
-		}
-		
+		forwardIterator = slides.listIterator(forwardIndex);
+		reverseIterator = slides.listIterator(reverseIndex);
 	}
 	
 	public void onBackPressed()
@@ -210,10 +200,12 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 	
 	public View makeView()
 	{
+		Log.i("AlbumPlay", "Making view");
 		ImageView iView = new ImageView(this);
 		iView.setScaleType(ImageView.ScaleType.FIT_CENTER);
 		iView.setLayoutParams(new ImageSwitcher.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 		iView.setBackgroundColor(0xFF000000);
+		Log.i("AlbumPlay", "Made view");
 		return iView;
 	}
 	
@@ -234,7 +226,7 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 
 	@Override
 	public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-		Log.d("AlbumPlay", "Fling ("+velocityX+","+velocityY+"): "+Math.abs(velocityX)+"/"+Math.abs(velocityY)+" = "+Math.abs(velocityX) / Math.abs(velocityY));
+		/*Log.d("AlbumPlay", "Fling ("+velocityX+","+velocityY+"): "+Math.abs(velocityX)+"/"+Math.abs(velocityY)+" = "+Math.abs(velocityX) / Math.abs(velocityY));
 		// Only interested in horizontal flings
 		if ((Math.abs(velocityX) / Math.abs(velocityY)) < 1)	
 		{
@@ -244,39 +236,32 @@ Log.d("AlbumPlay", "Not horizontal");
 		
 		// Which direction?
 		if (velocityX < 0)
-			changeSlide(1);
+			changeSlide(true);
 		else
-			changeSlide(-1);
+			changeSlide(false);
+		
+Log.i("AlbumPlay", "Flung");*/
 		
 		return true;
 	}
 	
-	// TODO: Support for moveBy != 1
-	private void changeSlide(final int moveBy)
-	{
-		final boolean forwards = (moveBy > 0);
-		
-		if (moveBy == 0)
-		{
-			Log.w("AlbumPlay", "ChangeSlide: attempted to move on by 0 slides!");
-			return;
-		}
-		
+	private void changeSlide(final boolean forwards)
+	{	
+Log.i("AlbumPlay", "Changing slide. We currently have "+switcher.getChildCount()+" views attached");
 		final AndroidDisplayer oldDisplayer = (AndroidDisplayer)currentSlide.getDisplayer();
 		oldDisplayer.deselected();
 		Slide newSlide;
-		boolean moved = false;
 		
 		// Get the next slide and its displayer
 		if (forwards && slideIterator.hasNext())
 		{
 			newSlide = slideIterator.next();
-			moved = true;
+			index++;
 		}
 		else if (!forwards && slideIterator.hasPrevious()) // TODO: Need to move back 2?
 		{
 			newSlide = slideIterator.previous();
-			moved = true;
+			index--;
 		}
 		else
 		{
@@ -285,14 +270,9 @@ Log.d("AlbumPlay", "Not horizontal");
 			return;
 		}
 		
-		if (newSlide == currentSlide) // Not using .equals(), we want to know if it's ACTUALLY the same slide 
-		{
-			Log.w("AlbumPlay", "ChangeSlide: attempted to move on by "+moveBy+" slides, but new slide is the same as current slide!");
-			return;
-		}
-		
+Log.i("AlbumPlay", "Waiting for displayer");
 		final AndroidDisplayer newDisplayer = (AndroidDisplayer)loader.waitForDisplayer(newSlide,Displayer.Loaded);
-		newDisplayer.selected();
+Log.i("AlbumPlay", "Got displayer");
 		
 		// Switch the view
 		Animation inTransition, outTransition;
@@ -310,6 +290,7 @@ Log.d("AlbumPlay", "Not horizontal");
 		switcher.setInAnimation(inTransition);
 		switcher.setOutAnimation(outTransition);
 		
+Log.i("AlbumPlay", "Set animations");
 		final View oldView = switcher.getCurrentView();
 		
 		// Set actions to happen after the transitions
@@ -332,7 +313,11 @@ Log.d("AlbumPlay", "Not horizontal");
 				// TODO: Move all pointers, preload next slide(s)
 				newDisplayer.active();
 				oldDisplayer.deactivated();
-				switcher.removeView(oldView);
+				oldView.setVisibility(View.GONE);
+				//switcher.removeView(oldView);
+				
+				Slide oldSlide = currentSlide;
+				Slide newSlide;
 				
 				/* Preload next slides & unload previous slides
 				   1. Cancel loading any slides we don't want
@@ -340,60 +325,97 @@ Log.d("AlbumPlay", "Not horizontal");
 				   3. Add slides we do want to the queue */
 				if (forwards)
 				{
-					while (reverseIterator.nextIndex()+Loader.readAheadFull < slideIterator.nextIndex())
+					// Iterate from the old old reverse iterator to the new forwards iterator 
+					ListIterator<Slide> scan = slides.listIterator(reverseIndex);
+					int scanIndex = reverseIndex;
+					while (scan.hasNext() && scanIndex <= forwardIndex)
 					{
-						boolean keepReduced = (reverseIterator.nextIndex() + Loader.readAheadReduced >= slideIterator.nextIndex());
-						
-						Slide unloadSlide = reverseIterator.next();
-						// Do we want to keep a partial copy of this?
-						if (keepReduced)
-							loader.cancelLoading(unloadSlide, Displayer.Prepared);
+						Slide s = scan.next();
+						if (scanIndex < index)
+						{
+							// Unload old slides
+							if (scanIndex < (index - Loader.readAheadFull))
+							{
+								loader.cancelLoading(s);
+								s.getDisplayer().unload();
+							}
+							else
+							{
+								loader.cancelLoading(s, Displayer.Prepared);
+								s.getDisplayer().deactivated();
+							}
+						}
 						else
-							loader.cancelLoading(unloadSlide);
+						{
+							// Load new slides
+							if (scanIndex < (index + Loader.readAheadFull))
+								loader.loadDisplayer(s, Displayer.Loaded);
+							else
+								loader.loadDisplayer(s, Displayer.Prepared);
+						}
+						scanIndex++;
 					}
-					
-					while (forwardIterator.nextIndex()-Loader.readAheadReduced < slideIterator.nextIndex())
-					{
-						boolean full = (forwardIterator.nextIndex()-Loader.readAheadFull <= slideIterator.nextIndex());
-						if (full)
-							loader.loadDisplayer(forwardIterator.next(), Displayer.Loaded);
-						else
-							loader.loadDisplayer(forwardIterator.next(), Displayer.Prepared);
-								
-					}
+					forwardIndex++;
+					reverseIndex++;
 				}
 				else
 				{
-					while (forwardIterator.previousIndex()-Loader.readAheadFull > slideIterator.nextIndex())
+					// Iterate from the old old reverse iterator to the new forwards iterator 
+					ListIterator<Slide> scan = slides.listIterator(forwardIndex);
+					int scanIndex = forwardIndex;
+					while (scan.hasPrevious() && scanIndex >= reverseIndex)
 					{
-						boolean keepReduced = (forwardIterator.previousIndex() - Loader.readAheadReduced <= slideIterator.previousIndex());
-
-						Slide unloadSlide = forwardIterator.previous();
-						// Do we want to keep a partial copy of this?
-						if (keepReduced)
-							loader.cancelLoading(unloadSlide, Displayer.Prepared);
+						Slide s = scan.previous();
+						if (scanIndex > index)
+						{
+							if (scanIndex > (index + Loader.readAheadFull))
+							{
+								loader.cancelLoading(s);
+								s.getDisplayer().unload();
+							}
+							else
+							{
+								loader.cancelLoading(s, Displayer.Prepared);
+								s.getDisplayer().deactivated();
+							}
+						}
 						else
-							loader.cancelLoading(unloadSlide);
+						{
+							if (scanIndex > (index - Loader.readAheadFull))
+								loader.loadDisplayer(s, Displayer.Loaded);
+							else
+								loader.loadDisplayer(s, Displayer.Prepared);
+						}
+						scanIndex--;
 					}
-
-					while (reverseIterator.previousIndex()+Loader.readAheadReduced > slideIterator.previousIndex())
-					{
-						boolean full = (reverseIterator.previousIndex()+Loader.readAheadFull >= slideIterator.previousIndex());
-						if (full)
-							loader.loadDisplayer(reverseIterator.previous(), Displayer.Loaded);
-						else
-							loader.loadDisplayer(reverseIterator.previous(), Displayer.Prepared);
-
-					}
+					forwardIndex--;
+					reverseIndex--;
 				}
+
+				Log.i("AlbumPlay", "Switch animation finished. There are now "+switcher.getChildCount()+" views attached");
 			}
 			public void onAnimationRepeat(Animation arg0) {}
 		});
 		
+Log.i("AlbumPlay", "Set transition actions");
 		View newView = newDisplayer.getView(this);
-		switcher.addView(newView);
-		switcher.showNext();
+Log.i("AlbumPlay", "Got new view - there are "+switcher.getChildCount()+" views already there");
+// Need to remove the view from its parent (which it's added to automatically...)
+		ViewParent parent = newView.getParent();
+		if (parent != null)
+		{
+			Log.i("AlbumPlay", "Parent is a "+parent.getClass().getName());
+			if (parent instanceof ViewGroup)
+			{
+				ViewGroup vg = (ViewGroup)parent;
+				vg.removeView(newView);
+			}
+		}
 		
+		switcher.addView(newView);
+Log.i("AlbumPlay", "Added new view - there are now "+switcher.getChildCount()+" views attached");
+		switcher.setDisplayedChild(switcher.getChildCount()-1);
+		Log.i("AlbumPlay", "Changed slide");
 	}
 	
 	@Override
@@ -422,25 +444,9 @@ Log.d("AlbumPlay", "Not horizontal");
 	public boolean onSingleTapUp(MotionEvent e) {
 		// TODO Auto-generated method stub
 		//Log.d("AlbumPlay", "SingleTapUp");
-		return false;
-	}
-	
-	private class AnimationEndListener implements AnimationListener
-	{
-
-		public void onAnimationEnd(Animation arg0) {
-			
-		}
-
-		public void onAnimationRepeat(Animation arg0) {
-			
-		}
-
-		public void onAnimationStart(Animation arg0) {
-			
-		}
+		changeSlide(true);
 		
+		return true;
 	}
-
-	
+		
 }
