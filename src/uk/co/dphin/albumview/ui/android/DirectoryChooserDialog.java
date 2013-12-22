@@ -71,7 +71,7 @@ public class DirectoryChooserDialog {
     // default sdcard directory
     ///////////////////////////////////////////////////////////////////////
 
-    public void chooseDirectory()
+    public void chooseDirectory() throws IOException
     {
         // Initial directory is sdcard directory
         chooseDirectory(m_sdcardDirectory);
@@ -82,7 +82,7 @@ public class DirectoryChooserDialog {
     // input 'dir' directory
     ////////////////////////////////////////////////////////////////////////////////
 
-    public void chooseDirectory(String dir)
+    public void chooseDirectory(String dir) throws IOException
     {
         File dirFile = new File(dir);
         if (! dirFile.exists() || ! dirFile.isDirectory())
@@ -90,14 +90,7 @@ public class DirectoryChooserDialog {
             dir = m_sdcardDirectory;
         }
 
-        try
-        {
-            dir = new File(dir).getCanonicalPath();
-        }
-        catch (IOException ioe)
-        {
-            return;
-        }
+        dir = new File(dir).getCanonicalPath();
 
         m_dir = dir;
         m_subdirs = getDirectories(dir);

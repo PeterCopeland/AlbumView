@@ -1,6 +1,12 @@
 package uk.co.dphin.albumview.ui.android;
 
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.sql.Date;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.TreeSet;
 
 import android.app.*;
 import android.content.*;
@@ -22,8 +28,9 @@ import uk.co.dphin.albumview.models.*;
 import uk.co.dphin.albumview.storage.android.AlbumManager;
 import uk.co.dphin.albumview.storage.android.AlbumViewContract;
 import uk.co.dphin.albumview.storage.android.StorageOpenHelper;
+import uk.co.dphin.albumview.ui.android.DirectoryChooserDialog.ChosenDirectoryListener;
 
-public class AlbumEdit extends Activity
+public class AlbumEdit extends Activity implements ChosenDirectoryListener
 {
 	private Album album;
 	private Slide activeSlide;
@@ -186,10 +193,57 @@ public class AlbumEdit extends Activity
 	 */
 	public void addFolder(View v)
 	{
-		Intent getFolder = new Intent(Intent.ACTION_PICK);
-		getFolder.setData(Uri.parse("folder:///"));
-		getFolder.putExtra(Intent.EXTRA_TITLE, "Add images from folder");
-		startActivityForResult(getFolder, SELECT_FOLDER);
+		String chosenDir;
+		boolean newFolderEnabled = false;
+		DirectoryChooserDialog chooser = new DirectoryChooserDialog(this, this);
+		chooser.setNewFolderEnabled(false);
+		try {
+			chooser.chooseDirectory();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void onChosenDir(String chosenDir)
+	{
+		// Scan all images in this directory and add them in alphabetical order by filename
+		File dir = new File(chosenDir);
+		if (!dir.isDirectory())
+		{
+			// Not a directory - so assume it's an image file
+			addImage(dir.getPath());
+			return;
+		}
+		
+		File[] files = dir.listFiles();
+		
+		TreeSet<File> sortedFiles = new TreeSet<File>();
+		sortedFiles.addAll(Arrays.asList(files));
+		
+		for (File f : sortedFiles)
+		{
+			if (f.isFile())
+				addImage(f.getPath());
+		}
+		
+		// Tell the filmstrip to update
+		updateFilmstrip();
+		
+		// Display the image in the main image preview
+		updateImage();
+		Log.i("AlbumEdit", "Album now has "+album.getSlides().size()+" slides");
+	}
+	
+	private void addImage(String path)
+	{
+		// TODO: Check this is an image that we can display
+		
+		// Set up a slide and displayer
+		ImageSlide slide = new ImageSlide();
+		slide.setImagePath(path);
+		album.addSlide(slide);
+		activeSlide = slide;
 	}
 	
 	protected void onActivityResult(int requestCode, int resultCode, Intent returnedIntent)
@@ -210,18 +264,13 @@ public class AlbumEdit extends Activity
 				String filePath = cursor.getString(columnIndex);
 				cursor.close();
 				
-				// Set up a slide and displayer
-				ImageSlide slide = new ImageSlide();
-				slide.setImagePath(filePath);
-				album.addSlide(slide);
-				activeSlide = slide;
+				addImage(filePath);
 				
 				// Tell the filmstrip to update
 				updateFilmstrip();
 				
 				// Display the image in the main image preview
 				updateImage();
-				
 			}
 			else if (requestCode == SELECT_FOLDER)
 			{
