@@ -1,4 +1,5 @@
 package uk.co.dphin.albumview.models;
+import android.util.Log;
 import uk.co.dphin.albumview.displayers.*;
 import uk.co.dphin.albumview.displayers.android.*;
 
@@ -12,6 +13,7 @@ public class ImageSlide extends Slide
 		// TODO: Get correct displayer for the system
 		if (disp == null)
 		{
+Log.i("Slide", "Create displayer for slide "+getImagePath());
 			disp = new AndroidImageDisplayer(this);
 		}
 		return disp;

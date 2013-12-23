@@ -41,7 +41,7 @@ public interface Displayer
 	 * Called before the slide becomes the selected slide.
 	 * The slide should perform any extra tasks needed.
 	 */
-	public void selected();
+	public void load();
 	
 	/**
 	 * Called after the slide becomes the selected slide.

@@ -1,8 +1,14 @@
 package uk.co.dphin.albumview.displayers.android;
+import java.io.IOException;
+
 import android.content.Context;
+import android.media.MediaPlayer;
+import android.util.Log;
 import android.view.View;
 import uk.co.dphin.albumview.displayers.*;
+import uk.co.dphin.albumview.logic.Controller;
 import uk.co.dphin.albumview.models.*;
+import uk.co.dphin.albumview.ui.android.AlbumPlay;
 
 public abstract class AndroidDisplayer implements Displayer
 {
@@ -12,6 +18,9 @@ public abstract class AndroidDisplayer implements Displayer
 	private int height;
 	
 	private int state;
+	
+	private MediaPlayer player;
+	private AlbumPlay playContext;
 	
 	public AndroidDisplayer(Slide s)
 	{
@@ -25,7 +34,7 @@ public abstract class AndroidDisplayer implements Displayer
 		return slide;
 	}
 	
-	public abstract View getView(Context context);
+	public abstract View getView();
 	
 	public void setDimensions(int w, int h)
 	{
@@ -40,6 +49,11 @@ public abstract class AndroidDisplayer implements Displayer
 			hasDimensions = false;
 			// TODO: Appropriate exception?
 		}
+	}
+	
+	public void setPlayContext(AlbumPlay c)
+	{
+		playContext = c;
 	}
 	
 	public boolean hasDimensions()
@@ -65,5 +79,54 @@ public abstract class AndroidDisplayer implements Displayer
 	protected void setState(int state)
 	{
 		this.state = state;
+	}
+	
+	public void prepare()
+	{
+		// Prepare music
+		if (slide.hasMusic())
+		{
+Log.i("AndroidDisplayer", "Slide with music is preparing");
+			MusicAction music = slide.getMusic();
+			if (music.isPlay())
+			{
+				player = new MediaPlayer();
+	Log.i("AndroidDisplayer", "Got mediaplayer");
+				try {
+					player.setDataSource(music.getPath());
+	Log.i("AndroidDisplayer", "Preparing mediaplayer");
+					player.prepare();
+	Log.i("AndroidDisplayer", "Prepared mediaplayer");
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (SecurityException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalStateException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	public void active()
+	{
+		// Play music
+		// TODO: Queueing
+		
+	}
+	
+	public MediaPlayer getMediaPlayer()
+	{
+		return player;
+	}
+
+	public Context getPlayContext() {
+		return playContext;
 	}
 }

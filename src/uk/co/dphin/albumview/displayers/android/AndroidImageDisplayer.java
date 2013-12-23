@@ -52,6 +52,7 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	public void prepare()
 	{
 		setState(Displayer.Preparing);
+		super.prepare();
 		loadImage();
 		setState(Displayer.Prepared);
 	}
@@ -61,7 +62,7 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	 * a reduced resolution image, load the full size version
 	 * FIXME: Implement a maximum resolution, or detect memory limits
 	 */
-	public void selected()
+	public void load()
 	{
 		setState(Displayer.Loading);
 		if (imageIsReduced)
@@ -73,11 +74,6 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 			this.fullImage = this.image;
 		}
 		setState(Displayer.Loaded);
-	}
-	
-	public void active()
-	{
-		// Nothing to do
 	}
 	
 	public void deselected()
@@ -127,11 +123,11 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 		this.imagePath = imagePath;
 	}
 			
-	public View getView(Context context)
+	public View getView()
 	{
 		if (view == null)
 		{
-			view = new ImageView(context);
+			view = new ImageView(getPlayContext());
 			view.setImageBitmap(getImage());
 		}
 		return view;

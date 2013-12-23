@@ -1,6 +1,7 @@
 package uk.co.dphin.albumview.ui.android;
 import android.app.*;
 import android.content.*;
+import android.os.Bundle;
 import android.view.*;
 import android.widget.*;
 import uk.co.dphin.albumview.*;
@@ -34,7 +35,7 @@ public class AlbumOptionsDialog extends DialogFragment
         }
     }
 	
-	public Dialog onDialogCreate()
+	public Dialog onCreateDialog(Bundle savedInstanceState)
 	{
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
     	// Get the layout inflater

@@ -62,7 +62,7 @@ public class Loader extends Thread {
 							}
 							// No need for a specific check for Prepared state - the loader is a single thread
 							if (action.minState >= Displayer.Loading && disp.getState() < Displayer.Loading)
-								disp.selected();
+								disp.load();
 							// Ditto no specific check for Loaded state
 						}
 						// Notify anything waiting for the loader that we've achieved something

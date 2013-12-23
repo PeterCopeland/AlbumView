@@ -7,6 +7,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 import uk.co.dphin.albumview.models.*;
 
 public class AlbumManager {
@@ -70,6 +71,21 @@ public class AlbumManager {
 			// TODO: Work with other slides - will need to add type to DB
 			ImageSlide slide = new ImageSlide();
 			slide.setImagePath(slideCursor.getString(slideCursor.getColumnIndexOrThrow(AlbumViewContract.Slide.ColumnNameImage)));
+			
+			// Load music
+			String[] musicArgs = {Long.toString(slideCursor.getLong(slideCursor.getColumnIndex(AlbumViewContract.Slide._ID)))};
+			Cursor musicCursor = db.query(AlbumViewContract.Music.TableName, null, AlbumViewContract.Music.ColumnNameSlide+" = ?", musicArgs, null, null, null);
+			if (musicCursor.moveToFirst())
+			{
+				MusicAction music = new MusicAction();
+				music.setPlay(musicCursor.getInt(musicCursor.getColumnIndex(AlbumViewContract.Music.ColumnNamePlay)) == 1 ? true : false);
+				music.setPath(musicCursor.getString(musicCursor.getColumnIndex(AlbumViewContract.Music.ColumnNameTrack)));
+				music.setFadeType(musicCursor.getInt(musicCursor.getColumnIndex(AlbumViewContract.Music.ColumnNameFadeType)));
+				music.setPlayWhen(musicCursor.getInt(musicCursor.getColumnIndex(AlbumViewContract.Music.ColumnNameWhen)));
+				slide.setMusic(music);
+Log.i("AlbumManager", "Adding music: "+music.getPath());
+			}
+			
 			album.addSlide(slide);
 		}
 		
@@ -147,7 +163,34 @@ public class AlbumManager {
 		if (slide instanceof ImageSlide)
 			cv.put(AlbumViewContract.Slide.ColumnNameImage, ((ImageSlide)slide).getImagePath());
 		cv.put(AlbumViewContract.Slide.ColumnNameOrder, order);
-		db.insertOrThrow(AlbumViewContract.Slide.TableName, null, cv);
+		long slideid = db.insertOrThrow(AlbumViewContract.Slide.TableName, null, cv);
+		
+		// Save the music for this slide
+		if (slide.hasMusic())
+		{
+			cv.clear();
+			MusicAction music = slide.getMusic();
+			cv.put(AlbumViewContract.Music.ColumnNameSlide, slideid);
+			cv.put(AlbumViewContract.Music.ColumnNamePlay, music.isPlay());
+			if (music.isPlay())
+			{
+				cv.put(AlbumViewContract.Music.ColumnNameTrack, music.getPath());
+			}
+			cv.put(AlbumViewContract.Music.ColumnNameFadeType, music.getFadeType());
+			cv.put(AlbumViewContract.Music.ColumnNameWhen, music.getPlayWhen());
+			db.insertOrThrow(AlbumViewContract.Music.TableName, null, cv);
+		}
+		else
+		{
+			// No music - delete anything already there
+			String[] args = {Long.toString(slideid)};
+			db.delete(
+					AlbumViewContract.Music.TableName,
+					AlbumViewContract.Music.ColumnNameSlide+" = ?",
+					args
+			);
+		}
+		
 	}
 	
 	/**

@@ -9,6 +9,7 @@
 		android:layout_width="750dp"
 		android:layout_height="500dp"
 	/>
+
 	<Button
 		android:id="@+id/editSlide"
 		android:layout_width="150dp"
@@ -17,15 +18,24 @@
 		android:text="Edit"
 		android:onClick="editSlide"
 	/>
+
 	<Button
-		android:id="@+id/deleteSlide"
-		android:layout_width="150dp"
-		android:layout_height="64dp"
-		android:layout_toRightOf="@+id/imageView"
-		android:layout_below="@+id/editSlide"
-		android:text="Delete"
-		android:onClick="deleteSlide"
-	/>
+	    android:id="@+id/musicSettings"
+	    android:layout_width="150dp"
+	    android:layout_height="64dp"
+	    android:layout_below="@+id/editSlide"
+	    android:layout_toRightOf="@+id/imageView"
+	    android:onClick="musicSettings"
+	    android:text="Music settings" />
+
+	<Button
+	    android:id="@+id/deleteSlide"
+	    android:layout_width="150dp"
+	    android:layout_height="64dp"
+	    android:layout_alignLeft="@+id/musicSettings"
+	    android:layout_below="@+id/musicSettings"
+	    android:onClick="deleteSlide"
+	    android:text="Delete" />
 
 	<HorizontalScrollView
 	    android:id="@+id/filmstrip"
@@ -72,6 +82,14 @@
 		android:onClick="newTitle"
 	/>
 
-		
+	<ImageView
+	    android:id="@+id/hasMusic"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentLeft="true"
+	    android:layout_alignParentTop="true"
+	    android:layout_marginLeft="348dp"
+	    android:layout_marginTop="38dp"
+	    android:src="@drawable/music" />
 
 </RelativeLayout>

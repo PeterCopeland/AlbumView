@@ -1,5 +1,6 @@
 package uk.co.dphin.albumview.models;
 
+import android.util.Log;
 import uk.co.dphin.albumview.displayers.*;
 
 /**
@@ -9,8 +10,31 @@ import uk.co.dphin.albumview.displayers.*;
  */
 public abstract class Slide
 {
+	private MusicAction music;
+	
  	/**
 	 * Return a displayer for this slide, preparing it if necessary
 	 */
 	public abstract Displayer getDisplayer();
+	
+	public boolean hasMusic()
+	{
+Log.i("Slide", "Checking music of slide "+((ImageSlide)this).getImagePath()+", result is "+(music == null ? "none" : music.getPath()));
+		return (music != null);
+	}
+	
+	/**
+	 * Sets the music action for this slide
+	 * @param m Music action
+	 */
+	public void setMusic(MusicAction m)
+	{
+Log.i("Slide", "Set music for slide "+((ImageSlide)this).getImagePath());
+		music = m;
+	}
+	
+	public MusicAction getMusic()
+	{
+		return music;
+	}
 }

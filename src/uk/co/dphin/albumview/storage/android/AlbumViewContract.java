@@ -26,4 +26,14 @@ public abstract class AlbumViewContract {
 		public static final String ColumnNameImage = "slideimage";
 		public static final String ColumnNameText = "slidetext";
 	}
+	
+	public static abstract class Music implements BaseColumns
+	{
+		public static final String TableName = "music";
+		public static final String ColumnNameSlide = "slideid";
+		public static final String ColumnNamePlay = "play";
+		public static final String ColumnNameTrack = "track";
+		public static final String ColumnNameWhen = "playWhen";
+		public static final String ColumnNameFadeType = "fadeType";
+	}
 }

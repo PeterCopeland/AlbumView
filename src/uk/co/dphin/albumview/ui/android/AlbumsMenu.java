@@ -1,6 +1,5 @@
 package uk.co.dphin.albumview.ui.android;
 
-import android.R;
 import android.app.*;
 import android.content.*;
 import android.database.Cursor;
@@ -11,6 +10,7 @@ import android.view.View.OnClickListener;
 import android.webkit.WebView.FindListener;
 import android.widget.*;
 import android.widget.AdapterView.OnItemClickListener;
+import uk.co.dphin.albumview.R;
 import uk.co.dphin.albumview.logic.*;
 import uk.co.dphin.albumview.models.*;
 import uk.co.dphin.albumview.storage.android.AlbumViewContract;
@@ -33,8 +33,8 @@ public class AlbumsMenu extends Fragment {
 		Toast.makeText(getActivity(), "Memory: "+am.getMemoryClass()+"MB. Large memory: "+am.getLargeMemoryClass()+"MB", Toast.LENGTH_LONG).show();
 		
 		
-		ListView list = (ListView)getActivity().findViewById(uk.co.dphin.albumview.R.id.albums);
-		Button newAlbum = (Button)getActivity().findViewById(uk.co.dphin.albumview.R.id.newAlbum);
+		ListView list = (ListView)getActivity().findViewById(R.id.albums);
+		Button newAlbum = (Button)getActivity().findViewById(R.id.newAlbum);
 		
 		// Get the existing albums TODO - multithread
 		StorageOpenHelper dbHelper = new StorageOpenHelper(getActivity());

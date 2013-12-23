@@ -29,8 +29,9 @@ import uk.co.dphin.albumview.storage.android.AlbumManager;
 import uk.co.dphin.albumview.storage.android.AlbumViewContract;
 import uk.co.dphin.albumview.storage.android.StorageOpenHelper;
 import uk.co.dphin.albumview.ui.android.DirectoryChooserDialog.ChosenDirectoryListener;
+import uk.co.dphin.albumview.ui.android.MusicSettings.MusicSettingsListener;
 
-public class AlbumEdit extends Activity implements ChosenDirectoryListener
+public class AlbumEdit extends Activity implements ChosenDirectoryListener, MusicSettingsListener
 {
 	private Album album;
 	private Slide activeSlide;
@@ -88,6 +89,26 @@ public class AlbumEdit extends Activity implements ChosenDirectoryListener
 		// Set up the filmstrip
 		filmstrip = (FrameLayout) findViewById(R.id.filmstrip);
 		filmstripContents = (LinearLayout) findViewById(R.id.contents);
+		
+		// Set up the sound settings button
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage("Music settings").setTitle("Music settings");
+		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
     }
 	
 	public void onStart()
@@ -133,17 +154,6 @@ public class AlbumEdit extends Activity implements ChosenDirectoryListener
 		}
 	}
 	
-	@Override
-	public void onResume()
-	{
-		super.onResume();
-		
-		// Save the album (we may have just returned from adding/changing a slide)
-		// TODO - should just save slides as they are changed
-		albMan.getWritableDatabase(this);
-		albMan.saveAlbum(album);
-	}
-	
 	protected void onSaveInstanceState(Bundle state)
 	{
 		super.onSaveInstanceState(state);
@@ -184,6 +194,14 @@ public class AlbumEdit extends Activity implements ChosenDirectoryListener
 		Intent getImg = new Intent(Intent.ACTION_PICK);
 		getImg.setType("image/*");
 		startActivityForResult(getImg, SELECT_IMAGE);
+	}
+	
+	public void musicSettings(View v)
+	{
+		Log.i("AlbumEdit", "Music settings");
+		DialogFragment musicSettings = new MusicSettings();
+		musicSettings.show(getFragmentManager(), "musicSettings");
+		Log.i("AlbumEdit", "Music settings shown");
 	}
 	
 	/**
@@ -244,6 +262,10 @@ public class AlbumEdit extends Activity implements ChosenDirectoryListener
 		slide.setImagePath(path);
 		album.addSlide(slide);
 		activeSlide = slide;
+		
+		// Save the album
+		albMan.getWritableDatabase(this);
+		albMan.saveAlbum(album);
 	}
 	
 	protected void onActivityResult(int requestCode, int resultCode, Intent returnedIntent)
@@ -293,6 +315,10 @@ public class AlbumEdit extends Activity implements ChosenDirectoryListener
 			Toast.makeText(this, "Could not decode image", Toast.LENGTH_SHORT);
 		}
 		imgView.setImageBitmap(disp.getImage());
+		
+		// Does this slide have music?
+		View hasMusic = findViewById(R.id.hasMusic);
+		hasMusic.setVisibility(activeSlide.hasMusic() ? View.VISIBLE : View.INVISIBLE);
 				
 	}
 	
@@ -320,5 +346,13 @@ public class AlbumEdit extends Activity implements ChosenDirectoryListener
 
 			filmstripContents.addView(iv);
 		}
+	}
+
+	/**
+	 * Sets a musicAction on the current slide
+	 */
+	public void setMusicAction(MusicAction action) {
+		activeSlide.setMusic(action);
+		albMan.saveAlbum(album); // TODO: Just save the slide?
 	}
 }

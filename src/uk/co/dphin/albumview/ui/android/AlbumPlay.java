@@ -3,6 +3,7 @@ package uk.co.dphin.albumview.ui.android;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Queue;
 
 import uk.co.dphin.albumview.R;
 import uk.co.dphin.albumview.R.id;
@@ -12,6 +13,7 @@ import uk.co.dphin.albumview.displayers.android.AndroidDisplayer;
 import uk.co.dphin.albumview.displayers.android.AndroidImageDisplayer;
 import uk.co.dphin.albumview.logic.Loader;
 import uk.co.dphin.albumview.models.Album;
+import uk.co.dphin.albumview.models.MusicAction;
 import uk.co.dphin.albumview.models.Slide;
 import uk.co.dphin.albumview.storage.android.AlbumManager;
 import uk.co.dphin.albumview.util.SystemUiHider;
@@ -21,6 +23,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -98,6 +101,9 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 	private GestureDetector gestureDetect;
 	private Loader loader;
 	
+	private MediaPlayer player;
+	private Queue musicQueue;
+	
 	
 	// Moving to next slide: transition out of previous slide
 	private Animation nextOutTransition = new TranslateAnimation(
@@ -168,7 +174,8 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		slideIterator = slides.listIterator(index);
 		currentSlide = slideIterator.next();
 		AndroidDisplayer disp = (AndroidDisplayer)loader.waitForDisplayer(currentSlide, Displayer.Loaded);
-		switcher.addView(disp.getView(this));
+		disp.setPlayContext(this);
+		switcher.addView(disp.getView());
 		
 		forwardIndex = Math.min(slides.size(), index + Loader.readAheadReduced);
 		reverseIndex = Math.max(0, index - Loader.readAheadReduced);
@@ -185,10 +192,19 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		
 		forwardIterator = slides.listIterator(forwardIndex);
 		reverseIterator = slides.listIterator(reverseIndex);
+		
 	}
-	
+		
 	public void onBackPressed()
 	{
+		// Stop any music
+		if (player != null && player.isPlaying())
+		{
+			player.stop();
+			player.release();
+		}
+		
+		// Tell the pause activity where we are
 		Intent result = new Intent();
 Log.i("AlbumPlay", "Pausing at slide "+index);
 		result.putExtra("slide", index);
@@ -246,7 +262,7 @@ Log.i("AlbumPlay", "Flung");*/
 	}
 	
 	private void changeSlide(final boolean forwards)
-	{	
+	{
 Log.i("AlbumPlay", "Changing slide. We currently have "+switcher.getChildCount()+" views attached");
 		final AndroidDisplayer oldDisplayer = (AndroidDisplayer)currentSlide.getDisplayer();
 		oldDisplayer.deselected();
@@ -315,9 +331,6 @@ Log.i("AlbumPlay", "Set animations");
 				oldDisplayer.deactivated();
 				oldView.setVisibility(View.GONE);
 				//switcher.removeView(oldView);
-				
-				Slide oldSlide = currentSlide;
-				Slide newSlide;
 				
 				/* Preload next slides & unload previous slides
 				   1. Cancel loading any slides we don't want
@@ -398,7 +411,8 @@ Log.i("AlbumPlay", "Set animations");
 		});
 		
 Log.i("AlbumPlay", "Set transition actions");
-		View newView = newDisplayer.getView(this);
+		newDisplayer.setPlayContext(this);
+		View newView = newDisplayer.getView();
 Log.i("AlbumPlay", "Got new view - there are "+switcher.getChildCount()+" views already there");
 // Need to remove the view from its parent (which it's added to automatically...)
 		ViewParent parent = newView.getParent();
@@ -415,7 +429,35 @@ Log.i("AlbumPlay", "Got new view - there are "+switcher.getChildCount()+" views 
 		switcher.addView(newView);
 Log.i("AlbumPlay", "Added new view - there are now "+switcher.getChildCount()+" views attached");
 		switcher.setDisplayedChild(switcher.getChildCount()-1);
+		currentSlide = newSlide;
+		postSwitchActions(newSlide);
 		Log.i("AlbumPlay", "Changed slide");
+	}
+	
+	private void postSwitchActions(Slide slide)
+	{
+		if (slide.hasMusic())
+		{
+			MusicAction music = slide.getMusic();
+			
+			if (music.getPlayWhen() == MusicAction.PLAY_NOW)
+			{
+				// Stop the current music
+				if (player != null && player.isPlaying())
+				{
+					// TODO: Fading out
+					player.stop();
+				}
+				
+				// Get the new, pre-prepared player from the slide
+				// TODO: Fade in
+				if (music.isPlay())
+				{
+					player = ((AndroidDisplayer)slide.getDisplayer()).getMediaPlayer();
+					player.start();
+				}
+			}
+		}
 	}
 	
 	@Override
