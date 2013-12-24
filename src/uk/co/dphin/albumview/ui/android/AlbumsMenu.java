@@ -29,17 +29,17 @@ public class AlbumsMenu extends Fragment {
 	public void onResume() {
 		super.onResume();
 		
-		ActivityManager am = (ActivityManager)getActivity().getSystemService(Context.ACTIVITY_SERVICE);
-		Toast.makeText(getActivity(), "Memory: "+am.getMemoryClass()+"MB. Large memory: "+am.getLargeMemoryClass()+"MB", Toast.LENGTH_LONG).show();
-		
-		
 		ListView list = (ListView)getActivity().findViewById(R.id.albums);
 		Button newAlbum = (Button)getActivity().findViewById(R.id.newAlbum);
 		
 		// Get the existing albums TODO - multithread
 		StorageOpenHelper dbHelper = new StorageOpenHelper(getActivity());
 		SQLiteDatabase db = dbHelper.getReadableDatabase();
-		String[] cols = {AlbumViewContract.Album._ID, AlbumViewContract.Album.ColumnNameName};
+		String[] cols = {
+			AlbumViewContract.Album._ID, 
+			AlbumViewContract.Album.ColumnNameName,
+			AlbumViewContract.Album.ColumnNameUpdated
+		};
 		Cursor albums = db.query(
 				AlbumViewContract.Album.TableName,
 				cols,
@@ -51,8 +51,8 @@ public class AlbumsMenu extends Fragment {
 		);
 		
 		// Connect the DB results to the list view
-		String[] from = {AlbumViewContract.Album.ColumnNameName};
-		int[] to = {uk.co.dphin.albumview.R.id.albumName};
+		String[] from = {AlbumViewContract.Album.ColumnNameName, AlbumViewContract.Album.ColumnNameUpdated};
+		int[] to = {uk.co.dphin.albumview.R.id.albumName, uk.co.dphin.albumview.R.id.albumUpdated};
 		CursorAdapter albumsAdapter = new SimpleCursorAdapter(getActivity(), uk.co.dphin.albumview.R.layout.albumsmenuentry, albums, from, to, 0);
 		
 		// Set up event listeners
