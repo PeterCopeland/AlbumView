@@ -71,6 +71,8 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 		}
 		else
 		{
+			if (this.image == null)
+				loadImage();
 			this.fullImage = this.image;
 		}
 		setState(Displayer.Loaded);
@@ -87,11 +89,6 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	public void deactivated()
 	{
 		setState(Displayer.Prepared);
-		// Only recycle the image now if the full size version is separate from the reduced version
-		if (imageIsReduced && this.fullImage != null && !this.fullImage.isRecycled())
-		{
-			this.fullImage.recycle();
-		}
 		this.fullImage = null;
 	}
 	
@@ -102,8 +99,6 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	public void unload()
 	{
 		setState(Displayer.Unloaded);
-		if (this.image != null && !this.image.isRecycled())
-			this.image.recycle();
 		this.image = null;
 	}
 	

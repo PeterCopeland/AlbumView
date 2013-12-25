@@ -19,7 +19,6 @@ public abstract class Slide
 	
 	public boolean hasMusic()
 	{
-Log.i("Slide", "Checking music of slide "+((ImageSlide)this).getImagePath()+", result is "+(music == null ? "none" : music.getPath()));
 		return (music != null);
 	}
 	
@@ -29,7 +28,6 @@ Log.i("Slide", "Checking music of slide "+((ImageSlide)this).getImagePath()+", r
 	 */
 	public void setMusic(MusicAction m)
 	{
-Log.i("Slide", "Set music for slide "+((ImageSlide)this).getImagePath());
 		music = m;
 	}
 	

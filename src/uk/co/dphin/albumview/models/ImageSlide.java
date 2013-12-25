@@ -13,7 +13,6 @@ public class ImageSlide extends Slide
 		// TODO: Get correct displayer for the system
 		if (disp == null)
 		{
-Log.i("Slide", "Create displayer for slide "+getImagePath());
 			disp = new AndroidImageDisplayer(this);
 		}
 		return disp;

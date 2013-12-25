@@ -1,16 +1,9 @@
 package uk.co.dphin.albumview.logic;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-
-import uk.co.dphin.albumview.displayers.Displayer;
-import uk.co.dphin.albumview.displayers.android.AndroidDisplayer;
-import uk.co.dphin.albumview.models.Album;
-import uk.co.dphin.albumview.models.Slide;
-import java.util.concurrent.*;
 import android.util.*;
-import java.util.*;
+import java.util.concurrent.*;
+import uk.co.dphin.albumview.displayers.*;
+import uk.co.dphin.albumview.models.*;
 
 /**
  * Handles background loading of images
@@ -46,10 +39,8 @@ public class Loader extends Thread {
 				QueueAction action = loadQueue.pollFirst(500, TimeUnit.MILLISECONDS);
 				if (action != null)
 				{
-	Log.i("Loader", "Main loop has task");
 					synchronized(this)
 					{
-	Log.i("Loader", "Main loop has lock");
 						Displayer disp = action.slide.getDisplayer();
 						// We don't store the displayer's state because that will change as we run these methods
 						// TODO: Check the displayer isn't also queued for unloading, or allow unload command to remove it from the queue
@@ -66,12 +57,10 @@ public class Loader extends Thread {
 							// Ditto no specific check for Loaded state
 						}
 						// Notify anything waiting for the loader that we've achieved something
-	Log.i("Loader", "Main loop notifying: there are now "+loadQueue.size()+" jobs in the load queue");
 						notify();
 					}
 				}
 			} catch (InterruptedException e) {
-Log.i("Loader", "Main loop iterrupted");
 				// Not interested in interruptions - the queue handles our notifications.
 				// Just go round and get the next action
 			}
@@ -87,20 +76,17 @@ Log.i("Loader", "Main loop iterrupted");
 	 */
 	public Displayer waitForDisplayer(Slide slide, int minState)
 	{
-		Log.i("Loader", "Requested a displayer");
 		Displayer disp = slide.getDisplayer();
 		if (disp.getState() < minState)
 		{
 			synchronized(this)
 			{
-Log.i("Loader", "Got lock - requesting displayer");
 				// Add an instruction to load this displayer as a priority, then wait for it to be available
 				loadDisplayer(slide, minState, true);
 				do
 				{
 					try
 					{
-Log.i("Loader", "Released lock - requesting displayer");
 						notify();
 						this.wait();
 					}
@@ -144,7 +130,6 @@ Log.i("Loader", "Released lock - requesting displayer");
 			loadQueue.addFirst(qa);
 		else
 			loadQueue.addLast(qa);
-		Log.i("Loader", "There are now "+loadQueue.size()+" jobs in the load queue");
 		notify();
 	}
 	

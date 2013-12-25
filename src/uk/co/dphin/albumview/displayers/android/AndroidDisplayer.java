@@ -86,17 +86,13 @@ public abstract class AndroidDisplayer implements Displayer
 		// Prepare music
 		if (slide.hasMusic())
 		{
-Log.i("AndroidDisplayer", "Slide with music is preparing");
 			MusicAction music = slide.getMusic();
 			if (music.isPlay())
 			{
 				player = new MediaPlayer();
-	Log.i("AndroidDisplayer", "Got mediaplayer");
 				try {
 					player.setDataSource(music.getPath());
-	Log.i("AndroidDisplayer", "Preparing mediaplayer");
 					player.prepare();
-	Log.i("AndroidDisplayer", "Prepared mediaplayer");
 				} catch (IllegalArgumentException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
