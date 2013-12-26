@@ -1,5 +1,7 @@
 package uk.co.dphin.albumview.displayers;
 
+import uk.co.dphin.albumview.models.*;
+
 public interface Displayer
 {
 	// TODO: Rename constants to make distinction between basic & full loading clearer
@@ -46,7 +48,7 @@ public interface Displayer
 	/**
 	 * Called after the slide becomes the selected slide.
 	 */
-	public void active();
+	public void active(Slide oldSlide, boolean forwards);
 	
 	/**
 	 * Called before the slide has been deselected. 
@@ -56,7 +58,12 @@ public interface Displayer
 	/**
 	 * Called after the slide has been deselected and the view has moved on
 	 */
-	public void deactivated();
+	public void deactivated(Slide newSlide, boolean forwards);
+	
+	/**
+	 * Unload the fully-prepared slide but keep the reduced version available
+	 */
+	public void standBy();
 	
 	/**
 	 * Called after the slide is well away from being displayed.
@@ -70,5 +77,9 @@ public interface Displayer
 	 * Get the current state of this displayer
 	 */
 	public int getState();
+	
+	// TODO: How can we specify the stop music method?
+	
+	public boolean hasPausedMusic(boolean forwards);
 	
 }

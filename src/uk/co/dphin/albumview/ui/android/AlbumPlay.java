@@ -219,6 +219,7 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 		forwardIndex = Math.min(forwardIndex, slides.size());
 		final AndroidDisplayer oldDisplayer = (AndroidDisplayer)currentSlide.getDisplayer();
 		oldDisplayer.deselected();
+		final Slide oldSlide = currentSlide;
 		Slide newSlide;
 		
 		// If we're reversing direction, we'll need to iterate twice - 
@@ -270,15 +271,14 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 		switcher.setOutAnimation(outTransition);
 		
 		final View oldView = switcher.getCurrentView();
+		final Slide innerNewSlide = newSlide;
 		
 		// Set actions to happen after the transition
 		inTransition.setAnimationListener(new AnimationListener()
 		{
 			public void onAnimationStart(Animation arg0) {}
 			public void onAnimationEnd(Animation arg0) {
-				// Move all pointers, preload next slide(s)
-				newDisplayer.active();
-				oldDisplayer.deactivated();
+				// Remove the oldview
 				oldView.setVisibility(View.GONE);
 				//switcher.removeView(oldView);
 				
@@ -304,7 +304,10 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 		newView.setVisibility(View.VISIBLE);
 		switcher.setDisplayedChild(switcher.getChildCount()-1);
 		currentSlide = newSlide;
-		postSwitchActions(newSlide);
+		
+		// Notify the slides of the transition
+		oldDisplayer.deactivated(innerNewSlide, forwards);
+		newDisplayer.active(oldSlide, forwards);
 	}
 	
 	private void preload(boolean forwards)
@@ -333,7 +336,7 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 					else if (scanIndex < (index - Loader.readAheadFull))
 					{
 						loader.cancelLoading(s, Displayer.Prepared);
-						s.getDisplayer().deactivated();
+						s.getDisplayer().standBy();
 					}
 				}
 				else
@@ -371,7 +374,7 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 					else if (scanIndex > (index + Loader.readAheadFull))
 					{
 						loader.cancelLoading(s, Displayer.Prepared);
-						s.getDisplayer().deactivated();
+						s.getDisplayer().standBy();
 					}
 				}
 				else
@@ -389,30 +392,28 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 		}
 	}
 	
-	private void postSwitchActions(Slide slide)
+
+
+	public boolean playingMusic()
 	{
-		if (slide.hasMusic())
-		{
-			MusicAction music = slide.getMusic();
-			
-			if (music.getPlayWhen() == MusicAction.PLAY_NOW)
-			{
-				// Stop the current music
-				if (player != null && player.isPlaying())
-				{
-					// TODO: Fading out
-					player.stop();
-				}
-				
-				// Get the new, pre-prepared player from the slide
-				// TODO: Fade in
-				if (music.isPlay())
-				{
-					player = ((AndroidDisplayer)slide.getDisplayer()).getMediaPlayer();
-					player.start();
-				}
-			}
-		}
+		// TODO: Implement this method
+		return (player != null && player.isPlaying());
+	}
+	
+	public MediaPlayer getPlayer()
+	{
+		return player;
+	}
+	
+	public void setPlayer(MediaPlayer mp)
+	{
+		player = mp;
+	}
+	
+	// TODO: Refactor into Displayer, passing on the slide it's moving from or to in the active() and deactivated() methods
+	private void postSwitchActions(Slide earlySlide, Slide lateSlide, boolean forwards)
+	{
+		
 	}
 	
 	@Override

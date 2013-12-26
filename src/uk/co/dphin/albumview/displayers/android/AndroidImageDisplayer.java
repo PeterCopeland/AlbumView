@@ -86,7 +86,7 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	/**
 	 * Destroy the full size image (if any) to free memory
 	 */
-	public void deactivated()
+	public void standBy()
 	{
 		setState(Displayer.Prepared);
 		this.fullImage = null;

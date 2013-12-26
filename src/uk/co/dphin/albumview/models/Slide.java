@@ -2,6 +2,7 @@ package uk.co.dphin.albumview.models;
 
 import android.util.Log;
 import uk.co.dphin.albumview.displayers.*;
+import android.media.*;
 
 /**
  * A slide is a single item that can be displayed
