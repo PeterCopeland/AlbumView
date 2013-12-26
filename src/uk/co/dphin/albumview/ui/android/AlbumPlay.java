@@ -67,7 +67,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 	/**
 	 * Direction of last move: -1 = backwards, 0 = none, 1 = forwards
 	 */
-	private int lastMoveForwards = 0;
+	private boolean lastMoveForwards = true;
 	
 	private RelativeLayout frame;
 	private ViewAnimator switcher;
@@ -166,6 +166,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		
 		forwardIterator = slides.listIterator(forwardIndex);
 		reverseIterator = slides.listIterator(reverseIndex);
+		lastMoveForwards= true; // We always start going forwards
 		
 	}
 		
@@ -222,14 +223,14 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 		
 		// If we're reversing direction, we'll need to iterate twice - 
 		// once to get the current slide again, then again to get the next slide.
-		final boolean reversing = ((lastMoveForwards == -1 && forwards) ||(lastMoveForwards != -1 && !forwards));
+		final boolean reversing = (lastMoveForwards != forwards);
 		
 		// Get the next slide and its displayer
 		if (forwards && slideIterator.hasNext())
 		{
 			if (reversing)
 				slideIterator.next();
-			lastMoveForwards = 1;
+			lastMoveForwards = true;
 			newSlide = slideIterator.next();
 			index++;
 		}
@@ -237,7 +238,7 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 		{
 			if (reversing)
 				slideIterator.previous();
-			lastMoveForwards = -1;
+			lastMoveForwards = false;
 			newSlide = slideIterator.previous();
 			index--;
 		}
