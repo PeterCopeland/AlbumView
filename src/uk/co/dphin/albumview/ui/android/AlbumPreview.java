@@ -78,6 +78,8 @@ public class AlbumPreview extends Fragment {
 						AlbumManager albMan = new AlbumManager();
 						albMan.getWritableDatabase(getActivity());
 						albMan.deleteAlbum(album.getID());
+						Log.i("AlbumPreview", "Delete album: Close DB");
+						albMan.closeDB();
 						
 						// Refresh the screen to update the album list and go to a blank preview screen
 						getActivity().recreate();

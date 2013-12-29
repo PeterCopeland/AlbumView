@@ -23,14 +23,9 @@ import uk.co.dphin.albumview.storage.android.AlbumManager;
 import uk.co.dphin.albumview.storage.android.AlbumViewContract;
 import uk.co.dphin.albumview.storage.android.StorageOpenHelper;
 
-public class AlbumPlayPaused extends Activity
+public class AlbumPlayPaused extends SlideListing
 {
-	private Album album;
-	private Slide activeSlide;
 	private int activeSlideNum;
-	
-	private FrameLayout filmstrip;
-	private LinearLayout filmstripContents;
 	
 	private final int PLAY_ALBUM = 100;
 	
@@ -46,10 +41,16 @@ public class AlbumPlayPaused extends Activity
 		
 		// Check the intent - are we loading an existing album or do we have a title?
 		Intent intent = getIntent();
+		Album album;
 		if (intent.hasExtra("album"))
 		{
 			albMan.getReadableDatabase(this);
 			album = albMan.loadAlbum(intent.getIntExtra("album", 0));
+			setAlbum(album);
+		}
+		else
+		{
+			return; // TODO: Error
 		}
 		
 		setTitle(album.getName());
@@ -63,20 +64,16 @@ public class AlbumPlayPaused extends Activity
 			else
 				activeSlideNum = 0;
 		
-			activeSlide = album.getSlides().get(activeSlideNum);
+			setActiveSlide(album.getSlides().get(activeSlideNum));
 			
 		}
 
-		// Set up the filmstrip
-		filmstrip = (FrameLayout) findViewById(R.id.filmstrip);
-		filmstripContents = (LinearLayout) findViewById(R.id.contents);
-		
 		// Set up the play button
 		Button buttonPlay = (Button)findViewById(R.id.playButton);
 		buttonPlay.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				Intent playIntent = new Intent(AlbumPlayPaused.this, AlbumPlay.class);
-				playIntent.putExtra("album", album.getID());
+				playIntent.putExtra("album", getAlbum().getID());
 Log.i("AlbumPlayPaused", "Starting play at slide "+activeSlideNum);
 				playIntent.putExtra("slide", activeSlideNum);
 				startActivityForResult(playIntent, PLAY_ALBUM);
@@ -89,10 +86,10 @@ Log.i("AlbumPlayPaused", "Starting play at slide "+activeSlideNum);
 		super.onStart();
 		
 		// Display the active slide in the main image view
-		if (activeSlide != null)
+		if (getActiveSlide() != null)
 		{
 			
-			final AndroidImageDisplayer disp = (AndroidImageDisplayer)activeSlide.getDisplayer();
+			final AndroidImageDisplayer disp = (AndroidImageDisplayer)getActiveSlide().getDisplayer();
 
 			// Wait for the image view to initialise so we can get its dimensions
 			final ImageView imgView = (ImageView)findViewById(R.id.imageView);
@@ -111,7 +108,7 @@ Log.i("AlbumPlayPaused", "Starting play at slide "+activeSlideNum);
 						imgView.setImageBitmap(disp.getImage());
 
 						// Setup the filmstrip
-						updateFilmstrip();
+						AlbumPlayPaused.this.updateThumbnails();
 
 						// Prevent this from repeating on future updates
 						ViewTreeObserver obs = imgView.getViewTreeObserver();
@@ -132,7 +129,14 @@ Log.i("AlbumPlayPaused", "Starting play at slide "+activeSlideNum);
 		super.onSaveInstanceState(state);
 		
 		// Save the index of the image currently selected
-		state.putInt("SelectedImage", album.getSlides().indexOf(activeSlide));
+		state.putInt("SelectedImage", getAlbum().getSlides().indexOf(getActiveSlide()));
+	}
+	
+	public void onStop()
+	{
+		super.onStop();
+		Log.i("AlbumPlayPaused", "onStop: Close DB");
+		albMan.closeDB();
 	}
 	
 	/**
@@ -148,20 +152,20 @@ Log.i("AlbumPlayPaused", "Starting play at slide "+activeSlideNum);
 	public void selectSlide(int slideIndex)
 	{
 		// Check this is a valid slide
-		if (slideIndex < 0 || slideIndex >= album.numSlides())
+		if (slideIndex < 0 || slideIndex >= getAlbum().numSlides())
 		{
 			throw new IndexOutOfBoundsException("Slide number is out of range");
 		}
 				
 		// Change the active slide
-		activeSlide = album.getSlides().get(slideIndex);
+		setActiveSlide(getAlbum().getSlides().get(slideIndex));
 		activeSlideNum = slideIndex;
 Log.i("AlbumPlayPaused", "Active slide set to "+activeSlideNum);
 		updateImage();
 	}
 		
 	// TODO: Use getView
-	private void updateImage()
+	/*private void updateImage()
 	{
 		AndroidImageDisplayer disp = (AndroidImageDisplayer)activeSlide.getDisplayer();
 		ImageView imgView = (ImageView)findViewById(R.id.imageView);
@@ -200,14 +204,12 @@ Log.i("AlbumPlayPaused", "Active slide set to "+activeSlideNum);
 
 			filmstripContents.addView(iv);
 		}
-	}
+	}*/
 	
 	public void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
-Log.i("AlbumPlayPaused", "Result for "+requestCode+" is "+resultCode+". Request should be "+PLAY_ALBUM+", result should be "+Activity.RESULT_OK);
 		if (requestCode == PLAY_ALBUM && data != null)
 		{
-Log.i("AlbumPlayPaused", "return to pause at slide "+data.getIntExtra("slide", -1));
 			selectSlide(data.getIntExtra("slide", 0));
 		}
 	}

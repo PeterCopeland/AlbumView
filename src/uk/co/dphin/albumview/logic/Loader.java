@@ -1,8 +1,9 @@
 package uk.co.dphin.albumview.logic;
 
-import android.util.*;
+import android.content.*;
 import java.util.concurrent.*;
 import uk.co.dphin.albumview.displayers.*;
+import uk.co.dphin.albumview.displayers.android.*;
 import uk.co.dphin.albumview.models.*;
 
 /**
@@ -22,10 +23,27 @@ public class Loader extends Thread {
 	
 	private BlockingDeque<QueueAction> loadQueue;
 	
+	private int width = 1280;
+	private int height = 760;
+	
+	// TODO: Remove android-specific code
+	private Context context;
+	
 	public Loader()
 	{
 		loadQueue = new LinkedBlockingDeque<QueueAction>();
 		setName("Loader");
+	}
+	
+	public void setPlayContext(Context c)
+	{
+		context = c;
+	}
+	
+	public void setDimensions(int width, int height)
+	{
+		this.width = width;
+		this.height = height;
 	}
 	
 	/* (non-Javadoc)
@@ -44,11 +62,15 @@ public class Loader extends Thread {
 						Displayer disp = action.slide.getDisplayer();
 						// We don't store the displayer's state because that will change as we run these methods
 						// TODO: Check the displayer isn't also queued for unloading, or allow unload command to remove it from the queue
+						if (disp instanceof AndroidDisplayer)
+						{
+							((AndroidDisplayer)disp).setPlayContext(this.context);
+						}
 						if (disp.getState() < action.minState)
 						{
 							if (action.minState >= Displayer.Preparing && disp.getState() < Displayer.Preparing)
 							{
-								disp.setDimensions(1280,720); // TODO: From screen, or can we get the OpenGL max texture size?
+								disp.setDimensions(width,height); // TODO: From screen, or can we get the OpenGL max texture size?
 								disp.prepare();
 							}
 							// No need for a specific check for Prepared state - the loader is a single thread
@@ -77,6 +99,10 @@ public class Loader extends Thread {
 	public Displayer waitForDisplayer(Slide slide, int minState)
 	{
 		Displayer disp = slide.getDisplayer();
+		if (disp instanceof AndroidDisplayer)
+		{
+			((AndroidDisplayer)disp).setPlayContext(this.context);
+		}
 		if (disp.getState() < minState)
 		{
 			synchronized(this)

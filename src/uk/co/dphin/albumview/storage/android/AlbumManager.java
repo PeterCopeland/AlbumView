@@ -7,7 +7,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 import uk.co.dphin.albumview.models.*;
 
 public class AlbumManager {
@@ -28,6 +27,11 @@ public class AlbumManager {
 		dbHelper = new StorageOpenHelper(c);
 		db = dbHelper.getWritableDatabase();
 		return db;
+	}
+	
+	public void closeDB()
+	{
+		db.close();
 	}
 	
 	/**
@@ -83,7 +87,6 @@ public class AlbumManager {
 				music.setFadeType(musicCursor.getInt(musicCursor.getColumnIndex(AlbumViewContract.Music.ColumnNameFadeType)));
 				music.setPlayWhen(musicCursor.getInt(musicCursor.getColumnIndex(AlbumViewContract.Music.ColumnNameWhen)));
 				slide.setMusic(music);
-Log.i("AlbumManager", "Adding music: "+music.getPath());
 			}
 			
 			album.addSlide(slide);
@@ -98,6 +101,7 @@ Log.i("AlbumManager", "Adding music: "+music.getPath());
 	 */
 	public int saveAlbum(Album album)
 	{
+		db.beginTransaction();
 		// Delete any existing slides for this album
 		if (album.getID() != null)
 		{
@@ -126,6 +130,10 @@ Log.i("AlbumManager", "Adding music: "+music.getPath());
 			saveSlideNoDelete(album, s, order);
 		}
 		
+		// TODO: Try loading the album from the DB, check that it matches, before committing
+		db.setTransactionSuccessful();
+		db.endTransaction();
+		
 		return (int)albumID;
 	}
 	
@@ -138,6 +146,8 @@ Log.i("AlbumManager", "Adding music: "+music.getPath());
 	 */
 	public void saveSlide(Album album, Slide slide, int order)
 	{
+		db.beginTransaction();
+		
 		// Delete any existing slide in this position
 		String[] args = {album.getID().toString(), Integer.toString(order)};
 		db.delete(
@@ -148,6 +158,10 @@ Log.i("AlbumManager", "Adding music: "+music.getPath());
 		
 		// Save this slide
 		saveSlideNoDelete(album, slide, order);
+		
+		// TODO: Check slide saved OK
+		db.setTransactionSuccessful();
+		db.endTransaction();
 	}
 	
 	/**

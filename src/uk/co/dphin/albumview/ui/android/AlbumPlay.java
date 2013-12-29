@@ -101,7 +101,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 	);
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.albumplay);
 		
@@ -128,7 +128,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		gestureDetect = new GestureDetector(this, this, null);
 	}
 	
-	protected void onStart()
+	public void onStart()
 	{
 		super.onStart();
 		
@@ -136,10 +136,13 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		AlbumManager albMan = new AlbumManager();
 		albMan.getReadableDatabase(this);
 		album = albMan.loadAlbum(intent.getIntExtra("album", 0));
+		Log.i("AlbumPlay", "onStart: Close DB");
+		albMan.closeDB();
 		index = intent.getIntExtra("slide", 0);
 		
 		// Start the slide loader
 		loader = Controller.getController().getLoader();
+		loader.setPlayContext(this);
 		if (!loader.isAlive())
 			loader.start();
 		

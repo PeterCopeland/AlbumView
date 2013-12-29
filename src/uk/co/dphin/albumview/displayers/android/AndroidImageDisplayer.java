@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.*;
 import uk.co.dphin.albumview.displayers.*;
 import uk.co.dphin.albumview.models.*;
+import android.view.*;
 
 public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisplayer
 {
@@ -35,7 +36,9 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	/**
 	 * View to be given to a context displaying this displayer
 	 */
-	private ImageView view;
+	private FrameLayout view;
+	
+	private ImageView iv;
 	
 	public AndroidImageDisplayer(ImageSlide s)
 	{
@@ -54,6 +57,7 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 		setState(Displayer.Preparing);
 		super.prepare();
 		loadImage();
+		attachImageDisplayer();
 		setState(Displayer.Prepared);
 	}
 	
@@ -75,6 +79,7 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 				loadImage();
 			this.fullImage = this.image;
 		}
+		attachImageDisplayer();
 		setState(Displayer.Loaded);
 	}
 	
@@ -120,12 +125,31 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 			
 	public View getView()
 	{
+		makeView();
+		attachImageDisplayer();
+		return view;
+	}
+	
+	private void makeView()
+	{
 		if (view == null)
 		{
-			view = new ImageView(getPlayContext());
-			view.setImageBitmap(getImage());
+			view = new FrameLayout(getPlayContext());
+			view.setLayoutParams(new LinearLayout.LayoutParams(getWidth(), getHeight()));
 		}
-		return view;
+	}
+	
+	private void attachImageDisplayer()
+	{
+		makeView();
+		if (iv == null && getState() >= Displayer.Prepared)
+		{
+			iv = new ImageView(getPlayContext());
+			Log.i("AndroidImageDisplayer", "Image is "+getImage());
+			iv.setImageBitmap(getImage());
+			view.addView(iv);
+			view.invalidate();
+		}
 	}
 	
 	public Bitmap getImage()
@@ -170,6 +194,8 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 		{
 			imageIsReduced = false;
 		}
+		
+		Log.i("AndroidImageDisplayer", "Loading image "+imagePath+" at sample size "+options.inSampleSize+" - "+getWidth()+"x"+getHeight());
 
 		// Load the image at the correct sample size
 		options.inJustDecodeBounds = false;

@@ -10,22 +10,14 @@
 		android:layout_height="500dp"
 	/>
 
-	<HorizontalScrollView
-	    android:id="@+id/filmstrip"
+	<FrameLayout
+		android:id="@+id/filmstripContainer"
 	    android:layout_width="fill_parent"
 	    android:layout_height="144dp"
 	    android:layout_alignParentBottom="true"
 	    android:layout_alignParentLeft="true"
-	    android:onClick="selectSlide" >
-
-		<LinearLayout
-		    android:id="@+id/contents"
-		    android:layout_width="wrap_content"
-		    android:layout_height="fill_parent"
-		    android:orientation="horizontal" >
-
-		</LinearLayout>
-	</HorizontalScrollView>
+	    android:layout_toLeftOf="@+id/newImageSlide"
+	/>
 
 	<Button
 	    android:id="@+id/playButton"

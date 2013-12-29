@@ -36,24 +36,16 @@
 	    android:layout_below="@+id/musicSettings"
 	    android:onClick="deleteSlide"
 	    android:text="Delete" />
-
-	<HorizontalScrollView
-	    android:id="@+id/filmstrip"
+	
+	<FrameLayout
+		android:id="@+id/filmstripContainer"
 	    android:layout_width="fill_parent"
 	    android:layout_height="144dp"
 	    android:layout_alignParentBottom="true"
 	    android:layout_alignParentLeft="true"
 	    android:layout_toLeftOf="@+id/newImageSlide"
-	    android:onClick="selectSlide" >
+	/>
 
-		<LinearLayout
-		    android:id="@+id/contents"
-		    android:layout_width="wrap_content"
-		    android:layout_height="fill_parent"
-		    android:orientation="horizontal" >
-
-		</LinearLayout>
-	</HorizontalScrollView>	
 	<Button
 		android:id="@+id/newImageSlide"
 		android:layout_width="150dp"
@@ -80,6 +72,23 @@
 		android:layout_alignParentRight="true"
 		android:text="New title"
 		android:onClick="newTitle"
+	/>
+
+	<ProgressBar
+		android:id="@+id/addImageProgressBar"
+		android:layout_width="256dp"
+		android:layout_height="4dp"
+		android:layout_alignParentRight="true"
+		android:layout_alignBottom="@+id/imageView"
+		style="@android:style/Widget.ProgressBar.Horizontal"
+	/>
+	<TextView
+		android:id="@+id/addImageProgressText"
+		android:layout_width="256dp"
+		android:layout_height="wrap_content"
+		android:layout_alignLeft="@+id/addImageProgressBar"
+		android:layout_above="@+id/addImageProgressBar"
+		android:text="Loading progress here"
 	/>
 
 	<ImageView
