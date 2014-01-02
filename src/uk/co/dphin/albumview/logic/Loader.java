@@ -5,6 +5,7 @@ import java.util.concurrent.*;
 import uk.co.dphin.albumview.displayers.*;
 import uk.co.dphin.albumview.displayers.android.*;
 import uk.co.dphin.albumview.models.*;
+import android.widget.*;
 
 /**
  * Handles background loading of images
@@ -105,6 +106,7 @@ public class Loader extends Thread {
 		}
 		if (disp.getState() < minState)
 		{
+			Toast.makeText(context, "Waiting for displayer for "+((ImageSlide)slide).getImagePath()+" in state "+minState, Toast.LENGTH_SHORT).show();
 			synchronized(this)
 			{
 				// Add an instruction to load this displayer as a priority, then wait for it to be available
