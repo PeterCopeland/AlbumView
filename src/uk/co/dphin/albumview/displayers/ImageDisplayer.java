@@ -5,5 +5,5 @@ package uk.co.dphin.albumview.displayers;
  */
 public interface ImageDisplayer extends Displayer
 {
-	public void loadImage(String imagePath);
+	public void setImage(String imagePath);
 }

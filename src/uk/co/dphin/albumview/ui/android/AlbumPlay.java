@@ -28,7 +28,7 @@ import uk.co.dphin.albumview.logic.Loader;
  * 
  * @see SystemUiHider
  */
-public class AlbumPlay extends Activity implements GestureDetector.OnGestureListener, ViewFactory
+public class AlbumPlay extends Activity implements GestureDetector.OnGestureListener
 {
 	/**
 	 * The number of slides to load into memory either side of the current slide
@@ -110,6 +110,8 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		
 		metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
+		Controller.getController().setSize(Displayer.Size_Screen, new Dimension(1280, 760)); // TODO: Screen size
+		Controller.getController().setSize(Displayer.Size_Full, new Dimension(1280, 760)); // TODO: OpenGL max texture size
 		
 		layout = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
 		frame = (RelativeLayout)findViewById(R.id.frame);
@@ -121,7 +123,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		Animation[] transitions = {nextOutTransition, nextInTransition, prevOutTransition, prevInTransition}; 
 		for (Animation a : transitions)
 		{
-			a.setDuration(500);
+			a.setDuration(250);
 			a.setInterpolator(new LinearInterpolator());
 		}
 		
@@ -150,9 +152,11 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		slides = album.getSlides();
 		slideIterator = slides.listIterator(index);
 		currentSlide = slideIterator.next();
-		AndroidDisplayer disp = (AndroidDisplayer)loader.waitForDisplayer(currentSlide, Displayer.Loaded);
+		AndroidDisplayer disp = (AndroidDisplayer)loader.waitForDisplayer(currentSlide, Displayer.Size_Full);
 		disp.setPlayContext(this);
-		switcher.addView(disp.getView());
+		disp.preActive();
+		disp.active(null, true);
+		switcher.addView(disp.getView(Displayer.Size_Full));
 		
 		forwardIndex = Math.min(slides.size(), index + Loader.readAheadReduced);
 		reverseIndex = Math.max(0, index - Loader.readAheadReduced);
@@ -163,7 +167,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		while (preloader.hasNext() && preloadPointer < forwardIndex)
 		{
 			Slide s = preloader.next();
-			loader.loadDisplayer(s, (Math.abs(index - preloadPointer) < Loader.readAheadFull) ? Displayer.Loaded : Displayer.Prepared);
+			loader.loadDisplayer(s, (Math.abs(index - preloadPointer) < Loader.readAheadFull) ? Displayer.Size_Full : Displayer.Size_Screen);
 			preloadPointer++;
 		}
 		
@@ -192,13 +196,11 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 		
 	}
 	
-	public View makeView()
+	public void onStop()
 	{
-		ImageView iView = new ImageView(this);
-		iView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-		iView.setLayoutParams(new ImageSwitcher.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-		iView.setBackgroundColor(0xFF000000);
-		return iView;
+		super.onStop();
+		
+		loader.emptyQueue();
 	}
 	
 	// TODO: Could unload large image when pausing
@@ -255,7 +257,8 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 		
 		preload(forwards);
 				
-		final AndroidDisplayer newDisplayer = (AndroidDisplayer)loader.waitForDisplayer(newSlide,Displayer.Loaded);
+		final AndroidDisplayer newDisplayer = (AndroidDisplayer)loader.waitForDisplayer(newSlide,Displayer.Size_Full);
+		newDisplayer.preActive();
 		
 		// Switch the view
 		Animation inTransition, outTransition;
@@ -290,7 +293,7 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 		});
 		
 		newDisplayer.setPlayContext(this);
-		View newView = newDisplayer.getView();
+		View newView = newDisplayer.getView(Displayer.Size_Full);
 
 		// Need to remove the view from its parent (which it's added to automatically...)
 		ViewParent parent = newView.getParent();
@@ -333,22 +336,24 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 					// Unload old slides
 					if (scanIndex < (index - Loader.readAheadReduced))
 					{
+						// Completely unload
 						loader.cancelLoading(s);
-						s.getDisplayer().unload();
+						s.getDisplayer().unload(Displayer.Size_Screen);
 					}
 					else if (scanIndex < (index - Loader.readAheadFull))
 					{
-						loader.cancelLoading(s, Displayer.Prepared);
-						s.getDisplayer().standBy();
+						// Unload full size
+						loader.cancelLoading(s, Displayer.Size_Full);
+						s.getDisplayer().unload(Displayer.Size_Full);
 					}
 				}
 				else
 				{
 					// Load new slides
 					if (scanIndex < (index + Loader.readAheadFull))
-						loader.loadDisplayer(s, Displayer.Loaded);
+						loader.loadDisplayer(s, Displayer.Size_Full);
 					else
-						loader.loadDisplayer(s, Displayer.Prepared);
+						loader.loadDisplayer(s, Displayer.Size_Screen);
 				}
 				scanIndex++;
 			}
@@ -371,21 +376,22 @@ Log.i("AlbumPlay", "Pausing at slide "+index);
 				{
 					if (scanIndex > (index + Loader.readAheadReduced))
 					{
-						loader.cancelLoading(s);
-						s.getDisplayer().unload();
+						// Unload completely
+						loader.cancelLoading(s, Displayer.Size_Screen);
 					}
 					else if (scanIndex > (index + Loader.readAheadFull))
 					{
-						loader.cancelLoading(s, Displayer.Prepared);
-						s.getDisplayer().standBy();
+						// Unload full size
+						loader.cancelLoading(s, Displayer.Size_Screen);
 					}
+					s.getDisplayer().unload(Displayer.Size_Screen);
 				}
 				else
 				{
 					if (scanIndex > (index - Loader.readAheadFull))
-						loader.loadDisplayer(s, Displayer.Loaded);
+						loader.loadDisplayer(s, Displayer.Size_Full);
 					else
-						loader.loadDisplayer(s, Displayer.Prepared);
+						loader.loadDisplayer(s, Displayer.Size_Screen);
 				}
 				scanIndex--;
 			}

@@ -5,6 +5,11 @@ package uk.co.dphin.albumview.logic;
  * This is currently implemented as a singleton, 
  * with a static method to access it, but this could be changed.
  */
+import java.util.HashMap;
+
+import android.R.dimen;
+import android.util.Log;
+
 import uk.co.dphin.albumview.models.*;
 
 public class Controller
@@ -12,6 +17,13 @@ public class Controller
 	private static Controller cont;
 	private Album currentAlbum;
 	private Loader loader;
+	
+	private HashMap<Integer, Dimension> sizes;
+	
+	public Controller()
+	{
+		sizes = new HashMap<Integer, Dimension>();
+	}
 	
 	/**
 	 * Gets the current controller object
@@ -43,5 +55,28 @@ public class Controller
 			loader = new Loader();
 		}
 		return loader;
+	}
+	
+	public Dimension getSize(int size)
+	{
+		if (sizes.containsKey(size))
+		{
+			return sizes.get(size);
+		}
+		else
+		{
+			return new Dimension(0,0); // Prevents errors before we're ready to display 
+			//throw new ArrayIndexOutOfBoundsException("Dimensions not set for size "+size);
+		}
+	}
+	
+	public void setSize(int size, Dimension dimension)
+	{
+if (dimension.width == 0 || dimension.height == 0)
+{
+	throw new RuntimeException("dimension has length 0");
+}
+Log.i("Controller", "Set size "+size+": "+dimension);
+		sizes.put(size, dimension);
 	}
 }

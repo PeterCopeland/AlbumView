@@ -8,50 +8,62 @@ public interface Displayer
 	/**
 	 * The displayer is in its base state with no resources loaded
 	 */
-	public final static int Unloaded = 0;
+	//public final static int Unloaded = 0;
 	/**
 	 * The displayer is loading its basic parts
 	 */
-	 public final static int Preparing = 1;
+	//public final static int Preparing = 1;
 	/**
 	 * The displayer has performed basic loading
 	 */
-	public final static int Prepared = 2;
+	//public final static int Prepared = 2;
 	/**
 	 * The displayer is loading its main parts
 	 */
-	public final static int Loading = 3;
+	//public final static int Loading = 3;
 	/**
 	 * The displayer is fully loaded
 	 */
-	public final static int Loaded = 4;
+	//public final static int Loaded = 4;
 	
 	/**
-	 * Sets the dimensions at which this slide will be displayed.
-	 * When showing the slide itself, this should be the screen dimensions.
-	 * When showing in the filmstrip (or similar), a reduced size will be used.
+	 * Thumbnail size
 	 */
-	public void setDimensions(int width, int height);
+	public final static int Size_Thumb = 1;
 	
 	/**
-	 * Called well before the slide is displayed.
-	 * The slide should perform initial preparations here
+	 * Medium size - fills most of the screen but with space for thumbnails and controls 
 	 */
-	public void prepare();
+	public final static int Size_Medium = 10;
 	
 	/**
-	 * Called before the slide becomes the selected slide.
-	 * The slide should perform any extra tasks needed.
+	 * Full screen - fills the available area
 	 */
-	public void load();
+	public final static int Size_Screen = 20;
 	
 	/**
-	 * Called after the slide becomes the selected slide.
+	 * Full size - the entire image
+	 */
+	public final static int Size_Full = 30;
+		
+	/**
+	 * Load the slide data at the given size
+	 */
+	public void load(int size);
+	
+	/**
+	 * Called before the slide becomes the active slide on screen
+	 */
+	public void preActive();
+	
+	/**
+	 * Called after the slide becomes the active slide on screen.
+	 * This means it's the main slide being displayed, not that it's visible in a thumbnail
 	 */
 	public void active(Slide oldSlide, boolean forwards);
 	
 	/**
-	 * Called before the slide has been deselected. 
+	 * Called before the slide has been deselected.
 	 */
 	public void deselected();
 	
@@ -61,22 +73,14 @@ public interface Displayer
 	public void deactivated(Slide newSlide, boolean forwards);
 	
 	/**
-	 * Unload the fully-prepared slide but keep the reduced version available
+	 * Unload the slide data at the given size
 	 */
-	public void standBy();
+	public void unload(int size);
 	
 	/**
-	 * Called after the slide is well away from being displayed.
-	 * Temporary data can now be disposed of, 
-	 * but it's possible the slide will be displayed again,
-	 * in which case it will be reloaded.
+	 * Checks if the specified size has loaded
 	 */
-	public void unload();
-	
-	/**
-	 * Get the current state of this displayer
-	 */
-	public int getState();
+	public boolean isSizeLoaded(int size);
 	
 	// TODO: How can we specify the stop music method?
 	

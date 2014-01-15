@@ -39,8 +39,6 @@ public abstract class AndroidDisplayer implements Displayer
 	public AndroidDisplayer(Slide s)
 	{
 		slide = s;
-		hasDimensions = false;
-		state = Displayer.Unloaded;
 	}
 	
 	public Slide getSlide()
@@ -48,54 +46,14 @@ public abstract class AndroidDisplayer implements Displayer
 		return slide;
 	}
 	
-	public abstract View getView();
-	
-	public void setDimensions(int w, int h)
-	{
-		if (w > 0 && h > 0)
-		{
-			width = w;
-			height = h;
-			hasDimensions = true;
-		}
-		else
-		{
-			hasDimensions = false;
-			// TODO: Appropriate exception?
-		}
-	}
+	public abstract View getView(int size);
 	
 	public void setPlayContext(Context c)
 	{
 		playContext = c;
 	}
 	
-	public boolean hasDimensions()
-	{
-		return hasDimensions;
-	}
-	
-	public int getHeight()
-	{
-		return height;
-	}
-	
-	public int getWidth()
-	{
-		return width;
-	}
-	
-	public int getState()
-	{
-		return state;
-	}
-	
-	protected void setState(int state)
-	{
-		this.state = state;
-	}
-	
-	public void prepare()
+	public void preActive()
 	{
 		// Prepare music
 		if (slide.hasMusic())
@@ -207,6 +165,24 @@ public abstract class AndroidDisplayer implements Displayer
 			}
 		}
 	}
+	
+	/**
+	 * Unload the specified size image, and any larger version as well
+	 * 
+	 */
+	public void unload(int size)
+	{
+		if (size <= Displayer.Size_Full)
+			doUnload(Displayer.Size_Full);
+		if (size <= Displayer.Size_Screen)
+			doUnload(Displayer.Size_Screen);
+		if (size <= Displayer.Size_Medium)
+			doUnload(Displayer.Size_Medium);
+		if (size <= Displayer.Size_Thumb)
+			doUnload(Displayer.Size_Thumb);
+	}
+	
+	public abstract void doUnload(int size);
 	
 	public boolean hasPausedMusic(boolean forwards)
 	{

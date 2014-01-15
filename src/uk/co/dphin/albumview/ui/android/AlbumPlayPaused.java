@@ -16,6 +16,7 @@ import android.view.View.*;
 import android.view.ViewTreeObserver.*;
 import android.widget.*;
 import uk.co.dphin.albumview.*;
+import uk.co.dphin.albumview.displayers.Displayer;
 import uk.co.dphin.albumview.displayers.android.*;
 import uk.co.dphin.albumview.logic.*;
 import uk.co.dphin.albumview.models.*;
@@ -98,14 +99,9 @@ Log.i("AlbumPlayPaused", "Starting play at slide "+activeSlideNum);
 					@Override
 					public void onGlobalLayout() {
 						// Load & display the image
-						disp.setDimensions(imgView.getWidth(), imgView.getHeight());
-						disp.prepare();	
+						disp.load(Displayer.Size_Medium);	
 
-						if (disp.getImage() == null)
-						{
-							// TODO: Error message
-						}
-						imgView.setImageBitmap(disp.getImage());
+						imgView.setImageBitmap(disp.getImage(Displayer.Size_Medium));
 
 						// Setup the filmstrip
 						AlbumPlayPaused.this.updateThumbnails();

@@ -5,22 +5,24 @@ import java.util.concurrent.*;
 import uk.co.dphin.albumview.displayers.*;
 import uk.co.dphin.albumview.displayers.android.*;
 import uk.co.dphin.albumview.models.*;
+import android.util.Log;
 import android.widget.*;
 
 /**
  * Handles background loading of images
  * @author Peter Copeland
  *
+ * TODO: Create stop() method to stop loading anything when we move out of a SlideListing
  */
 public class Loader extends Thread {
 	/**
 	 * Read this many images either side of the current image at full size
 	 */
-	public static final int readAheadFull = 1;
+	public static final int readAheadFull = 3;
 	/**
 	 * Read this many images either side of the current image at reduced size
 	 */
-	public static final int readAheadReduced = 3;
+	public static final int readAheadReduced = 5;
 	
 	private BlockingDeque<QueueAction> loadQueue;
 	
@@ -67,21 +69,14 @@ public class Loader extends Thread {
 						{
 							((AndroidDisplayer)disp).setPlayContext(this.context);
 						}
-						if (disp.getState() < action.minState)
+						if (!disp.isSizeLoaded(action.size))
 						{
-							if (action.minState >= Displayer.Preparing && disp.getState() < Displayer.Preparing)
-							{
-								disp.setDimensions(width,height); // TODO: From screen, or can we get the OpenGL max texture size?
-								disp.prepare();
-							}
-							// No need for a specific check for Prepared state - the loader is a single thread
-							if (action.minState >= Displayer.Loading && disp.getState() < Displayer.Loading)
-								disp.load();
-							// Ditto no specific check for Loaded state
+							disp.load(action.size);
 						}
 						// Notify anything waiting for the loader that we've achieved something
 						notify();
 					}
+					sleep(10);
 				}
 			} catch (InterruptedException e) {
 				// Not interested in interruptions - the queue handles our notifications.
@@ -97,20 +92,19 @@ public class Loader extends Thread {
 	 * @param slide
 	 * @param minState Put the displayer in this state if it's in a lower state
 	 */
-	public Displayer waitForDisplayer(Slide slide, int minState)
+	public Displayer waitForDisplayer(Slide slide, int size)
 	{
 		Displayer disp = slide.getDisplayer();
 		if (disp instanceof AndroidDisplayer)
 		{
 			((AndroidDisplayer)disp).setPlayContext(this.context);
 		}
-		if (disp.getState() < minState)
+		if (!disp.isSizeLoaded(size))
 		{
-			Toast.makeText(context, "Waiting for displayer for "+((ImageSlide)slide).getImagePath()+" in state "+minState, Toast.LENGTH_SHORT).show();
 			synchronized(this)
 			{
 				// Add an instruction to load this displayer as a priority, then wait for it to be available
-				loadDisplayer(slide, minState, true);
+				loadDisplayer(slide, size, true);
 				do
 				{
 					try
@@ -124,7 +118,7 @@ public class Loader extends Thread {
 						// so fall through and test if it's what we wanted
 					}
 				}
-				while (disp.getState() < minState);
+				while (!disp.isSizeLoaded(size));
 			}
 			
 		}
@@ -132,9 +126,9 @@ public class Loader extends Thread {
 		
 	}
 	
-	public synchronized void loadDisplayer(Slide slide, int minState)
+	public synchronized void loadDisplayer(Slide slide, int size)
 	{
-		loadDisplayer(slide, minState, false);
+		loadDisplayer(slide, size, false);
 	}
 	
 	/**
@@ -148,11 +142,15 @@ public class Loader extends Thread {
 	 * @param minState Load the displayer in this state or higher
 	 * @param prioritise If true, this load will be added to the front of the queue. If false, it's added to the back.
 	 */
-	public synchronized void loadDisplayer(Slide slide, int minState, boolean prioritise)
+	public synchronized void loadDisplayer(Slide slide, int size, boolean prioritise)
 	{
 		QueueAction qa = new QueueAction();
 		qa.slide = slide;
-		qa.minState = minState;
+		qa.size = size;
+		
+		String path = ((ImageSlide)slide).getImagePath();
+		
+		Log.i("Loader", (prioritise ? "High" : "Low")+ " priority: loading "+path.substring(path.lastIndexOf("/"))+" at size "+size);
 		
 		if (prioritise)
 			loadQueue.addFirst(qa);
@@ -167,41 +165,44 @@ public class Loader extends Thread {
 	 */
 	public synchronized void cancelLoading(Slide slide)
 	{
-		cancelLoading(slide, Displayer.Unloaded);
+		cancelLoading(slide, Displayer.Size_Thumb);
+		cancelLoading(slide, Displayer.Size_Medium);
+		cancelLoading(slide, Displayer.Size_Screen);
+		cancelLoading(slide, Displayer.Size_Full);
 	}
 	
 	/**
-	 * Cancels loading a displayer, or reduces it to load at a lower state.
+	 * Cancels loading a displayer at a specific size.
 	 * Does not unload a displayer that has already been loaded.
 	 */
-	public synchronized void cancelLoading(Slide slide, int maxState)
+	public synchronized void cancelLoading(Slide slide, int size)
 	{
 		// Build a new queue with the actions we want to keep, then swap it with the original queue
 		BlockingDeque<QueueAction> newQueue = new LinkedBlockingDeque<QueueAction>();
 		for (QueueAction qa : loadQueue)
 		{
-			if (qa.slide == slide)
-			{
-				// Slide matches - check the state being loaded
-				if (maxState != Displayer.Unloaded)
-				{
-					if (qa.minState > maxState)
-						qa.minState = maxState;
-					newQueue.add(qa);
-				}
-			}
-			else
-				// No action on this slide
+			if (qa.slide != slide && qa.size != size)
+				// Keep this in the queue
 				newQueue.add(qa);
 		}
 		loadQueue = newQueue;
+	}
+	
+	/**
+	 * Clear all actions in the queue.
+	 * Call this when moving to another context in which the load actions are no longer useful.
+	 */
+	public synchronized void emptyQueue()
+	{
+		Log.i("Loader", "Cleared queue, currently has "+loadQueue.size()+" items");
+		loadQueue.clear();
 	}
 	
 	private class QueueAction
 	{
 		public Slide slide;
 		public Displayer displayer;
-		public int minState;
+		public int size;
 	}
 	
 }

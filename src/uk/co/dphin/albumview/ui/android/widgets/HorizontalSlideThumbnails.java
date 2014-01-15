@@ -87,31 +87,49 @@ public class HorizontalSlideThumbnails extends HorizontalScrollView
 	{
 
 		// Create image views for each slide
-
+Log.i("Thumbnails", "Updating album view");
 		int i=0;
 		for (Slide s : album.getSlides())
 		{
 			// TODO: Use same as main view
 			AndroidDisplayer disp = (AndroidDisplayer)s.getDisplayer();
 			disp.setPlayContext(context);
-			disp.setDimensions(thumbnailWidth, thumbnailHeight);
-			final View view = disp.getView();
+			disp.load(Displayer.Size_Thumb);// TODO: From loader thread
+			
+			final View view = disp.getView(Displayer.Size_Thumb);
 			view.setId(i++); // Get i, then increment for the next slide
 			view.setOnClickListener(new OnClickListener() {
 					public void onClick(View v)
 					{
 						// Add an image if we're missing one when the item is clicked
-						Slide clickedSlide = album.getSlides().get(view.getId());
+						Slide clickedSlide = album.getSlides().get(v.getId());
 						AndroidDisplayer disp = (AndroidDisplayer)clickedSlide.getDisplayer();
-						if (disp.getState() < Displayer.Prepared)
-							disp.prepare();
+						if (!disp.isSizeLoaded(Displayer.Size_Thumb))
+							disp.load(Displayer.Size_Thumb);
 						
 						context.selectSlide(v);
 					}
 				});
+			if (view.getParent() != null)
+			{
+				((ViewGroup)view.getParent()).removeView(view);
+			}
 			
 			if (view.getParent() == null)
+			{
+				Log.i("Thumbnails", "Added new view for slide "+((ImageSlide)s).getImagePath()+", there are now "+contents.getChildCount()+" children");
 				contents.addView(view);
+				invalidate();
+			}
+			else
+			{
+				Log.i("Thumbnails", "Slide "+((ImageSlide)s).getImagePath()+" already has parent");
+			}
+			
+			//ImageView testIV = new ImageView(context);
+			//testIV.setImageBitmap(((AndroidImageDisplayer)disp).getImage(Displayer.Size_Thumb));
+			//testIV.setAlpha(0.5f);
+			//contents.addView(testIV);
 		}
 		
 		updateDisplay(getScrollX());
@@ -139,8 +157,8 @@ public class HorizontalSlideThumbnails extends HorizontalScrollView
 		{
 			Slide s = iter.next();
 			Displayer d = s.getDisplayer();
-			if (d.getState() < Displayer.Prepared)
-				d.prepare();
+			if (!d.isSizeLoaded(Displayer.Size_Thumb))
+				d.load(Displayer.Size_Thumb);
 			numDone++;
 		}
 		//Log.i("HorizontalSlideThumbnails", "Update display at "+left+", updated "+numDone+" slides starting at "+firstVisible+" - last visible is "+lastVisible);

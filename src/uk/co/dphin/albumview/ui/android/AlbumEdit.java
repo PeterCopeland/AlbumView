@@ -27,6 +27,8 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 	
 	private FileLoader fileLoad;
 	
+	private int startSlide;
+	
 	// Activity results
 	private static final int SELECT_IMAGE = 100;
 	private static final int SELECT_FOLDER = 110;
@@ -35,12 +37,19 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
     @Override
 	// TODO: Specific exception
     public void onCreate(Bundle savedInstanceState)
-	{
-        super.onCreate(savedInstanceState);
+    {
+    	super.onCreate(savedInstanceState);
+    	
         setContentView(R.layout.albumedit);
-		
-		// Check the intent - are we loading an existing album or do we have a title?
-		Intent intent = getIntent();
+    	
+    	// Get the starting slide
+    	if (savedInstanceState != null)
+			startSlide = savedInstanceState.getInt("SelectedImage",0);
+		else
+			startSlide = 0;
+    	
+    	// Check the intent - are we loading an existing album or do we have a title?
+    	Intent intent = getIntent();
 		Album album;
 		if (intent.hasExtra("album"))
 		{
@@ -66,21 +75,21 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 
 		setAlbum(album);
 		
-		// If the album has slides, select the previously active slide, or the first slide if there's no active slide
-		if (album.numSlides() > 0)
-		{
-			int curSlide;
-			if (savedInstanceState != null)
-				curSlide = savedInstanceState.getInt("SelectedImage",0);
-			else
-				curSlide = 0;
+
+		Log.i("AlbumEdit", "Ready to create loader");
 		
-			setActiveSlide(album.getSlides().get(curSlide));
-			
-		}
+		// Set up the loader thread
+		fileLoad = new FileLoader();
+		Log.i("AlbumEdit", "Created loader");
+		fileLoad.setProgressDisplay((ProgressBar)findViewById(R.id.addImageProgressBar));
+		fileLoad.setTextDisplay((TextView)findViewById(R.id.addImageProgressText));
+		fileLoad.start();
+		
+		// TODO: Some of this needs to be in onStart in case the process is killed, I think
+
 		
 		// Set up the sound settings button
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		/*AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage("Music settings").setTitle("Music settings");
 		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 			
@@ -97,16 +106,22 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 				// TODO Auto-generated method stub
 				
 			}
-		});
+		});*/
+    }
+    
+    @Override
+    public void onStart()
+	{
+        super.onStart();
 		
-		Log.i("AlbumEdit", "Ready to create loader");
+		albMan.getWritableDatabase(this);
+		// If the album has slides, select the previously active slide, or the first slide if there's no active slide
+		/*if (album.numSlides() > 0 && startSlide >= 0)
+		{	
+			setActiveSlide(album.getSlides().get(startSlide));
+			startSlide = -1; // Don't go back to the start slide after resuming
+		}*/
 		
-		// Set up the loader thread
-		fileLoad = new FileLoader();
-		Log.i("AlbumEdit", "Created loader");
-		fileLoad.setProgressDisplay((ProgressBar)findViewById(R.id.addImageProgressBar));
-		fileLoad.setTextDisplay((TextView)findViewById(R.id.addImageProgressText));
-		fileLoad.start();
 		
     }
 	
@@ -115,6 +130,7 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 		super.onSaveInstanceState(state);
 		
 		// Save the index of the image currently selected
+		Log.i("AlbumEdit", "SaveInstanceState: current slide is "+getAlbum().getSlides().indexOf(getActiveSlide()));
 		state.putInt("SelectedImage", getAlbum().getSlides().indexOf(getActiveSlide()));
 	}
 	
@@ -282,6 +298,8 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 		private int numToDo;
 		private int numTotal;
 		
+		private final String[] imgExtensions = new String[] {"jpg", "jpeg", "png", "gif", "tif", "tiff", "bmp"};
+		
 		public FileLoader()
 		{
 			numDone = 0;
@@ -329,7 +347,11 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 
 							// TODO: Put save functions in correct place
 							// Saving from this worker thread is dangerous and can cause locking problems
-							saveAlbum();
+							if (queue.isEmpty())
+							{
+								// Only save if the queue is empty to avoid concurrent modification
+								saveAlbum();
+							}
 							
 							// Display the last slide
 							runOnUiThread(new Runnable()
@@ -416,7 +438,23 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 				return;
 			}
 
-			File[] files = dir.listFiles();
+			File[] files = dir.listFiles(new FileFilter() {
+				
+				@Override
+				public boolean accept(File pathname) {
+					
+					if (pathname.isDirectory())
+						return false;
+					
+					String fileExt = pathname.getName().substring(pathname.getName().lastIndexOf(".")+1);
+					for (String ext: imgExtensions)
+					{
+						if (ext.equals(fileExt))
+							return true;
+					}
+					return false;
+				}
+			});
 
 			TreeSet<File> sortedFiles = new TreeSet<File>();
 			sortedFiles.addAll(Arrays.asList(files));

@@ -1,6 +1,7 @@
 package uk.co.dphin.albumview.storage.android;
 
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 
 import android.content.ContentValues;
@@ -124,7 +125,9 @@ public class AlbumManager {
 		
 		// Save all the slides
 		int order = -1;
-		for (Slide s : album.getSlides())
+		Slide[] slides = new Slide[album.getSlides().size()];
+		slides = album.getSlides().toArray(slides);
+		for (Slide s : slides)
 		{
 			order++;
 			saveSlideNoDelete(album, s, order);

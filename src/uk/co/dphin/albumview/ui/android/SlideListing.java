@@ -1,6 +1,9 @@
 package uk.co.dphin.albumview.ui.android;
 
+import java.util.Collection;
+
 import android.app.*;
+import android.graphics.Color;
 import android.media.*;
 import android.os.*;
 import android.util.*;
@@ -35,6 +38,13 @@ public abstract class SlideListing extends Activity
 	{
 		super.onCreate(savedInstanceState);
 		
+		// Set display sizes for full screen
+		DisplayMetrics metrics = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(metrics);
+		
+		Controller.getController().setSize(Displayer.Size_Thumb, new Dimension(144,144));//wrapper.getHeight(), wrapper.getHeight())); // TODO: Get from the layout
+		Controller.getController().setSize(Displayer.Size_Screen, new Dimension(metrics.widthPixels,metrics.heightPixels));
+		Controller.getController().setSize(Displayer.Size_Full, new Dimension(metrics.widthPixels,metrics.heightPixels)); // TODO: OpenGL max texture size
 	}
 
 	public void onStart()
@@ -60,6 +70,10 @@ public abstract class SlideListing extends Activity
 				filmstripContents.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.FILL_PARENT));
 				filmstrip.addView(filmstripContents);
 				wrapper.addView(filmstrip);
+				
+				ImageView testIV = new ImageView(SlideListing.this);
+				testIV.setImageResource(R.drawable.music);
+				filmstripContents.addView(testIV);
 
 				Log.i("AlbumEdit", "Filmstrip: "+filmstrip+", contents: "+filmstripContents+", album: "+album);
 
@@ -71,9 +85,11 @@ public abstract class SlideListing extends Activity
 
 				updateThumbnails();
 				
-				loader.setDimensions(filmstrip.getThumbnailWidth(), filmstrip.getThumbnailHeight());
 				if (!loader.isAlive())
 					loader.start();
+				
+
+				
 				
 			}
 		});
@@ -92,17 +108,11 @@ public abstract class SlideListing extends Activity
 					@Override
 					public void onGlobalLayout() {
 						// Load & display the image
-						disp.setDimensions(imgView.getWidth(), imgView.getHeight());
-						disp.prepare();	
+						Controller.getController().setSize(Displayer.Size_Medium, new Dimension(imgView.getWidth(), imgView.getHeight()));
+						
+						disp.load(Displayer.Size_Medium);
 
-						if (disp.getImage() == null)
-						{
-							// TODO: Error message
-						}
-						imgView.setImageBitmap(disp.getImage());
-
-						// Setup the filmstrip
-						updateThumbnails();
+						imgView.setImageBitmap(disp.getImage(Displayer.Size_Medium));
 
 						// Prevent this from repeating on future updates
 						ViewTreeObserver obs = imgView.getViewTreeObserver();
@@ -116,6 +126,13 @@ public abstract class SlideListing extends Activity
 
 
 		}
+	}
+	
+	public void onStop()
+	{
+		super.onStop();
+		
+		loader.emptyQueue();
 	}
 	
 	public void setActiveSlide(Slide activeSlide)
@@ -149,9 +166,10 @@ public abstract class SlideListing extends Activity
 		if (filmstrip != null)
 		{
 			// Load all the slides
-			for (Slide s : album.getSlides())
+			Collection<Slide> slides = album.getSlides();
+			for (Slide s : slides)
 			{
-				loader.loadDisplayer(s, Displayer.Prepared);
+				loader.loadDisplayer(s, Displayer.Size_Thumb);
 			}
 				
 			//Toast.makeText(SlideListing.this, "Wrapper: "+((View)filmstrip.getParent()).getWidth()+"x"+((View)filmstrip.getParent()).getHeight()+", filmstrip: "+filmstrip.getWidth()+"x"+filmstrip.getHeight()+", filmstripcontents: "+filmstripContents.getWidth()+"x"+filmstripContents.getHeight(), Toast.LENGTH_SHORT).show();
@@ -190,14 +208,9 @@ public abstract class SlideListing extends Activity
 		AndroidImageDisplayer disp = (AndroidImageDisplayer)getActiveSlide().getDisplayer();
 		ImageView imgView = (ImageView)findViewById(R.id.imageView);
 		Log.i("Add image", "Width: "+imgView.getWidth()+" height: "+imgView.getHeight());
-		disp.setDimensions(imgView.getWidth(), imgView.getHeight());
-		disp.prepare();
+		disp.load(Displayer.Size_Medium);
 
-		if (disp.getImage() == null)
-		{
-			Toast.makeText(this, "Could not decode image", Toast.LENGTH_SHORT);
-		}
-		imgView.setImageBitmap(disp.getImage());
+		imgView.setImageBitmap(disp.getImage(Displayer.Size_Medium));
 
 		// Does this slide have music?
 		View hasMusic = findViewById(R.id.hasMusic);

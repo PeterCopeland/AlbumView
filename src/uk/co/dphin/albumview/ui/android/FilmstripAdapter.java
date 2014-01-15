@@ -5,6 +5,8 @@ import android.util.*;
 import android.view.*;
 import android.widget.*;
 import java.util.*;
+
+import uk.co.dphin.albumview.displayers.Displayer;
 import uk.co.dphin.albumview.displayers.android.*;
 import uk.co.dphin.albumview.models.*;
 
@@ -28,9 +30,8 @@ public class FilmstripAdapter extends ArrayAdapter<Slide>
 			
 		ImageSlide slide = (ImageSlide)this.getItem(position);
 		AndroidImageDisplayer disp = (AndroidImageDisplayer)slide.getDisplayer();
-		disp.setDimensions(192,128);
-		disp.prepare();
-		img.setImageBitmap(disp.getImage());
+		disp.load(Displayer.Size_Thumb);
+		img.setImageBitmap(disp.getImage(Displayer.Size_Thumb));
 		
 		return img;
 	}
