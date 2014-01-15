@@ -75,12 +75,8 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 
 		setAlbum(album);
 		
-
-		Log.i("AlbumEdit", "Ready to create loader");
-		
 		// Set up the loader thread
 		fileLoad = new FileLoader();
-		Log.i("AlbumEdit", "Created loader");
 		fileLoad.setProgressDisplay((ProgressBar)findViewById(R.id.addImageProgressBar));
 		fileLoad.setTextDisplay((TextView)findViewById(R.id.addImageProgressText));
 		fileLoad.start();
@@ -130,15 +126,12 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 		super.onSaveInstanceState(state);
 		
 		// Save the index of the image currently selected
-		Log.i("AlbumEdit", "SaveInstanceState: current slide is "+getAlbum().getSlides().indexOf(getActiveSlide()));
 		state.putInt("SelectedImage", getAlbum().getSlides().indexOf(getActiveSlide()));
 	}
 	
 	public void onStop()
 	{
 		super.onStop();
-		
-		Log.i("AlbumEdit", "onStop: Closing DB");
 		albMan.closeDB();
 	}
 	
@@ -158,10 +151,8 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 	
 	public void musicSettings(View v)
 	{
-		Log.i("AlbumEdit", "Music settings");
 		DialogFragment musicSettings = new MusicSettings();
 		musicSettings.show(getFragmentManager(), "musicSettings");
-		Log.i("AlbumEdit", "Music settings shown");
 	}
 	
 	/**
@@ -223,42 +214,10 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 				// Display the image in the main image preview
 				//updateImage();
 			}
-			else if (requestCode == SELECT_FOLDER)
-			{
-				Log.i("Add folder", "Folder: "+returnedIntent.getDataString());
-			}
 			
 		}
 	}
 	
-	
-	
-	/*private void updateFilmstrip()
-	{
-		// TODO: Might be able to make this more efficient by only making the exact changes instead of rebuilding
-		filmstripContents.removeAllViews();
-		
-		// Quicker to iterate through a LinkedList than to iterate a counter and get the specific slide
-		int i=0;
-		for (Slide s : album.getSlides())
-		{
-			ImageView iv = new ImageView(this);
-			AndroidImageDisplayer disp = (AndroidImageDisplayer)s.getDisplayer();
-			disp.setDimensions(filmstrip.getHeight(), filmstrip.getHeight());
-			disp.prepare();
-			iv.setImageBitmap(disp.getImage());
-			iv.setId(i++); // Get i, then increment for the next slide
-			iv.setOnClickListener(new OnClickListener() {
-				public void onClick(View v)
-				{
-					AlbumEdit.this.selectSlide(v);
-				}
-			});
-
-			filmstripContents.addView(iv);
-		}
-	}*/
-
 	/**
 	 * Sets a musicAction on the current slide
 	 */
@@ -320,7 +279,6 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 		
 		public void run()
 		{
-			Log.i("AlbumEdit.Loader", "Loader starting");
 			while (true)
 			{
 				try
@@ -329,7 +287,6 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 					File nextFile = queue.poll(3000, TimeUnit.MILLISECONDS);
 					if (nextFile != null)
 					{
-						Log.i("AlbumEdit.Loader", "Loading next file");
 						ImageSlide slide = new ImageSlide();
 						slide.setImagePath(nextFile.getPath());
 						getAlbum().addSlide(slide);

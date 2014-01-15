@@ -19,8 +19,6 @@ public class FilmstripAdapter extends ArrayAdapter<Slide>
 	
 	public View getView(int position, View convertView, ViewGroup parent)
 	{
-		Toast.makeText(getContext(), "GetView: "+position, Toast.LENGTH_SHORT);
-		Log.i("Filmstrip", "GetView for item "+position);
 		ImageView img;
 		
 		if (convertView == null)

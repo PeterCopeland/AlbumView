@@ -75,8 +75,6 @@ public abstract class SlideListing extends Activity
 				testIV.setImageResource(R.drawable.music);
 				filmstripContents.addView(testIV);
 
-				Log.i("AlbumEdit", "Filmstrip: "+filmstrip+", contents: "+filmstripContents+", album: "+album);
-
 				filmstrip.setContents(filmstripContents);
 				filmstrip.setAlbum(album);
 				
@@ -147,7 +145,6 @@ public abstract class SlideListing extends Activity
 
 	public void setAlbum(Album album)
 	{
-		Log.i("AlbumEdit", "Album set to "+album);
 		this.album = album;
 		
 		// Add every slide in the album to the load queue
@@ -207,7 +204,6 @@ public abstract class SlideListing extends Activity
 	{
 		AndroidImageDisplayer disp = (AndroidImageDisplayer)getActiveSlide().getDisplayer();
 		ImageView imgView = (ImageView)findViewById(R.id.imageView);
-		Log.i("Add image", "Width: "+imgView.getWidth()+" height: "+imgView.getHeight());
 		disp.load(Displayer.Size_Medium);
 
 		imgView.setImageBitmap(disp.getImage(Displayer.Size_Medium));

@@ -140,8 +140,6 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 			img = Bitmap.createScaledBitmap(img, resizeW, resizeH, false);
 		}
 		
-		
-		Log.i("Load image", "Loaded image "+imagePath+" at "+dim);
 		images.put(dim, img);
 		
 		// If the view for this size already exists, add the image
@@ -154,7 +152,6 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 					
 					@Override
 					public void run() {
-						Log.i("Load image", "Adding image to existing view");
 						getView(size);
 					}
 				});
@@ -180,13 +177,6 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 			imagePortrait = (options.outHeight > options.outWidth);
 		}
 	}
-	@Override
-	public void active(Slide oldSlide, boolean forwards)
-	{
-		// TODO: For testing only - remove
-		super.active(oldSlide, forwards);
-		Log.i("Active slide", "Active slide is "+imagePath.substring(imagePath.lastIndexOf("/")));
-	}
 	
 	public void deselected()
 	{
@@ -205,7 +195,6 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 		if (images.containsKey(dim))
 		{
 			images.remove(dim);
-			Log.i("Unload image", "Unloaded "+imagePath+" size "+size);
 		}
 	}
 	
@@ -256,10 +245,6 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 				ImageView iv = new ImageView(getPlayContext());
 				iv.setImageBitmap(images.get(dim));
 				frame.addView(iv);
-			}
-			else if (frame.getChildCount() > 0)
-			{
-				Log.w("Image display", "Frame already contains "+frame.getChildCount()+" children: "+frame.getChildAt(0));
 			}
 		}
 		

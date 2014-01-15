@@ -87,7 +87,6 @@ public class HorizontalSlideThumbnails extends HorizontalScrollView
 	{
 
 		// Create image views for each slide
-Log.i("Thumbnails", "Updating album view");
 		int i=0;
 		for (Slide s : album.getSlides())
 		{
@@ -117,13 +116,8 @@ Log.i("Thumbnails", "Updating album view");
 			
 			if (view.getParent() == null)
 			{
-				Log.i("Thumbnails", "Added new view for slide "+((ImageSlide)s).getImagePath()+", there are now "+contents.getChildCount()+" children");
 				contents.addView(view);
 				invalidate();
-			}
-			else
-			{
-				Log.i("Thumbnails", "Slide "+((ImageSlide)s).getImagePath()+" already has parent");
 			}
 			
 			//ImageView testIV = new ImageView(context);

@@ -138,7 +138,6 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		AlbumManager albMan = new AlbumManager();
 		albMan.getReadableDatabase(this);
 		album = albMan.loadAlbum(intent.getIntExtra("album", 0));
-		Log.i("AlbumPlay", "onStart: Close DB");
 		albMan.closeDB();
 		index = intent.getIntExtra("slide", 0);
 		
@@ -188,7 +187,6 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		
 		// Tell the pause activity where we are
 		Intent result = new Intent();
-Log.i("AlbumPlay", "Pausing at slide "+index);
 		result.putExtra("slide", index);
 		setResult(Activity.RESULT_OK, result);
 		

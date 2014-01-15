@@ -75,7 +75,6 @@ public class AlbumPlayPaused extends SlideListing
 			public void onClick(View v) {
 				Intent playIntent = new Intent(AlbumPlayPaused.this, AlbumPlay.class);
 				playIntent.putExtra("album", getAlbum().getID());
-Log.i("AlbumPlayPaused", "Starting play at slide "+activeSlideNum);
 				playIntent.putExtra("slide", activeSlideNum);
 				startActivityForResult(playIntent, PLAY_ALBUM);
 			}
@@ -131,7 +130,6 @@ Log.i("AlbumPlayPaused", "Starting play at slide "+activeSlideNum);
 	public void onStop()
 	{
 		super.onStop();
-		Log.i("AlbumPlayPaused", "onStop: Close DB");
 		albMan.closeDB();
 	}
 	
@@ -156,51 +154,8 @@ Log.i("AlbumPlayPaused", "Starting play at slide "+activeSlideNum);
 		// Change the active slide
 		setActiveSlide(getAlbum().getSlides().get(slideIndex));
 		activeSlideNum = slideIndex;
-Log.i("AlbumPlayPaused", "Active slide set to "+activeSlideNum);
 		updateImage();
 	}
-		
-	// TODO: Use getView
-	/*private void updateImage()
-	{
-		AndroidImageDisplayer disp = (AndroidImageDisplayer)activeSlide.getDisplayer();
-		ImageView imgView = (ImageView)findViewById(R.id.imageView);
-		disp.setDimensions(imgView.getWidth(), imgView.getHeight());
-		disp.prepare();
-		
-		if (disp.getImage() == null)
-		{
-			Toast.makeText(this, "Could not decode image", Toast.LENGTH_SHORT);
-		}
-		imgView.setImageBitmap(disp.getImage());
-				
-	}
-	
-	private void updateFilmstrip()
-	{
-		// TODO: Might be able to make this more efficient by only making the exact changes instead of rebuilding
-		filmstripContents.removeAllViews();
-		
-		// Quicker to iterate through a LinkedList than to iterate a counter and get the specific slide
-		int i=0;
-		for (Slide s : album.getSlides())
-		{
-			ImageView iv = new ImageView(this);
-			AndroidImageDisplayer disp = (AndroidImageDisplayer)s.getDisplayer();
-			disp.setDimensions(filmstrip.getHeight(), filmstrip.getHeight());
-			disp.prepare();
-			iv.setImageBitmap(disp.getImage());
-			iv.setId(i++); // Get i, then increment for the next slide
-			iv.setOnClickListener(new OnClickListener() {
-				public void onClick(View v)
-				{
-					AlbumPlayPaused.this.selectSlide(v);
-				}
-			});
-
-			filmstripContents.addView(iv);
-		}
-	}*/
 	
 	public void onActivityResult(int requestCode, int resultCode, Intent data)
 	{

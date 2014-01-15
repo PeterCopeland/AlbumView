@@ -38,7 +38,6 @@ public class MusicSettings extends DialogFragment {
 	
 	public Dialog onCreateDialog(Bundle savedInstanceState)
 	{
-Log.i("MusicSettings", "Creating dialog");
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
     	// Get the layout inflater
     	LayoutInflater inflater = getActivity().getLayoutInflater();
@@ -73,7 +72,6 @@ Log.i("MusicSettings", "Creating dialog");
 				startActivityForResult(getTrack, SELECT_TRACK);
 			}
 		});
-Log.i("MusicSettings", "Layout set up");
 		
 		builder.setView(layout);
 		builder.setPositiveButton("Create", new DialogInterface.OnClickListener() // TODO: Change label if editing existing album
@@ -131,12 +129,8 @@ Log.i("MusicSettings", "Layout set up");
 					selectedTrack, filePathColumn, null, null, null);
 				cursor.moveToFirst();
 				
-
-
 				int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
 				track = cursor.getString(columnIndex);
-				
-				Log.i("MusicSettings", "Track is "+track);
 				
 				if (cursor.getColumnIndex(MediaStore.Audio.Media.TITLE) != -1)
 				{

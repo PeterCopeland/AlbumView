@@ -149,9 +149,7 @@ public class Loader extends Thread {
 		qa.size = size;
 		
 		String path = ((ImageSlide)slide).getImagePath();
-		
-		Log.i("Loader", (prioritise ? "High" : "Low")+ " priority: loading "+path.substring(path.lastIndexOf("/"))+" at size "+size);
-		
+				
 		if (prioritise)
 			loadQueue.addFirst(qa);
 		else
@@ -194,7 +192,6 @@ public class Loader extends Thread {
 	 */
 	public synchronized void emptyQueue()
 	{
-		Log.i("Loader", "Cleared queue, currently has "+loadQueue.size()+" items");
 		loadQueue.clear();
 	}
 	
