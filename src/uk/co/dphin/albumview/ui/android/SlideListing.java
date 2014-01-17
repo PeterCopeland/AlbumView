@@ -71,10 +71,6 @@ public abstract class SlideListing extends Activity
 				filmstrip.addView(filmstripContents);
 				wrapper.addView(filmstrip);
 				
-				ImageView testIV = new ImageView(SlideListing.this);
-				testIV.setImageResource(R.drawable.music);
-				filmstripContents.addView(testIV);
-
 				filmstrip.setContents(filmstripContents);
 				filmstrip.setAlbum(album);
 				

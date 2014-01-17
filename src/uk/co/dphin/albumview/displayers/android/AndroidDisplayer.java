@@ -172,6 +172,7 @@ public abstract class AndroidDisplayer implements Displayer
 	 */
 	public void unload(int size)
 	{
+		Log.i("Unload", "Unloading "+size+" and larger");
 		if (size <= Displayer.Size_Full)
 			doUnload(Displayer.Size_Full);
 		if (size <= Displayer.Size_Screen)

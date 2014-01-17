@@ -283,7 +283,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 			public void onAnimationStart(Animation arg0) {}
 			public void onAnimationEnd(Animation arg0) {
 				// Remove the oldview
-				oldView.setVisibility(View.GONE);
+				//oldView.setVisibility(View.GONE);
 				//switcher.removeView(oldView);
 				
 			}
@@ -332,18 +332,8 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 				if (scanIndex < index)
 				{
 					// Unload old slides
-					if (scanIndex < (index - Loader.readAheadReduced))
-					{
-						// Completely unload
-						loader.cancelLoading(s);
-						s.getDisplayer().unload(Displayer.Size_Screen);
-					}
-					else if (scanIndex < (index - Loader.readAheadFull))
-					{
-						// Unload full size
-						loader.cancelLoading(s, Displayer.Size_Full);
-						s.getDisplayer().unload(Displayer.Size_Full);
-					}
+					loader.cancelLoading(s);
+					s.getDisplayer().unload(Displayer.Size_Screen);
 				}
 				else
 				{
@@ -372,20 +362,13 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 				
 				if (scanIndex > index)
 				{
-					if (scanIndex > (index + Loader.readAheadReduced))
-					{
-						// Unload completely
-						loader.cancelLoading(s, Displayer.Size_Screen);
-					}
-					else if (scanIndex > (index + Loader.readAheadFull))
-					{
-						// Unload full size
-						loader.cancelLoading(s, Displayer.Size_Screen);
-					}
+					// Unload old slides
+					loader.cancelLoading(s);
 					s.getDisplayer().unload(Displayer.Size_Screen);
 				}
 				else
 				{
+					// TODO: Fix unloading so we can load full-size images with zooming
 					if (scanIndex > (index - Loader.readAheadFull))
 						loader.loadDisplayer(s, Displayer.Size_Full);
 					else

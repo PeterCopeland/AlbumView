@@ -191,11 +191,23 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	public void doUnload(int size)
 	{
 		Dimension dim = Controller.getController().getSize(size);
-		
+		if (views.containsKey(dim))
+		{
+			ViewGroup v = views.get(dim);
+			// Remove the imageView
+			v.removeAllViews();
+			
+			// Delete the view
+			views.remove(v);
+		}
 		if (images.containsKey(dim))
 		{
+			Log.i("Unload", imagePath+": unloaded size "+size+" at "+dim);
+			Bitmap img = images.get(dim);
 			images.remove(dim);
 		}
+		else
+			Log.w("Unload", imagePath+": can't unload size "+size+" at "+dim);
 	}
 	
 	/**
@@ -222,9 +234,9 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 		synchronized(views)
 		{
 			// Create or get an outer frame for this size
-			if (views.containsKey(size))
+			if (views.containsKey(dim))
 			{
-				frame = views.get(size);
+				frame = views.get(dim);
 			}
 			else
 			{
