@@ -201,6 +201,7 @@ public abstract class AndroidDisplayer implements Displayer
 	private void fadeOut(final MediaPlayer player, int duration)
 	{
 		int intVolume = MusicMaxVolume;
+		fadingMusicVolume = intVolume;
 		long period =  duration / MusicMaxVolume; // Time between volume changes in ms
 		final Timer timer = new Timer();
 		TimerTask task = new TimerTask()
@@ -210,8 +211,9 @@ public abstract class AndroidDisplayer implements Displayer
 				float newVol = changeVolume(-1);
 				player.setVolume(newVol,newVol);
 				
-				if (newVol < 1)
+				if (newVol < 0.01)
 				{
+					Log.i("Music", "Stop music");
 					player.pause();
 					timer.cancel();
 				}
