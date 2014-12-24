@@ -17,10 +17,14 @@ import uk.co.dphin.albumview.displayers.*;
 import uk.co.dphin.albumview.displayers.android.*;
 import uk.co.dphin.albumview.logic.*;
 import uk.co.dphin.albumview.models.*;
+import uk.co.dphin.albumview.models.Slide;
 import uk.co.dphin.albumview.storage.android.*;
 
 import android.view.ViewGroup.LayoutParams;
 import uk.co.dphin.albumview.logic.Loader;
+import android.transition.*;
+import android.net.*;
+import java.io.*;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -174,6 +178,11 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		reverseIterator = slides.listIterator(reverseIndex);
 		lastMoveForwards= true; // We always start going forwards
 		
+		if (disp.isPanoramic())
+		{
+			findViewById(R.id.openPanoButton).setVisibility(View.VISIBLE);
+		}
+		
 	}
 		
 	public void onBackPressed()
@@ -253,6 +262,10 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 			return;
 		}
 		
+		// Hide the panorama button
+		Button openPano = (Button)findViewById(R.id.openPanoButton);
+		openPano.setVisibility(openPano.INVISIBLE);
+		
 		preload(forwards);
 				
 		final AndroidDisplayer newDisplayer = (AndroidDisplayer)loader.waitForDisplayer(newSlide,Displayer.Size_Full);
@@ -312,6 +325,32 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		// Notify the slides of the transition
 		oldDisplayer.deactivated(innerNewSlide, forwards);
 		newDisplayer.active(oldSlide, forwards);
+		
+		// Show the open panorama button if needed
+		if (newDisplayer.isPanoramic())
+		{
+			openPano.setVisibility(openPano.VISIBLE);
+		}
+	}
+	
+	public void openPanorama(View view)
+	{
+		ImageSlide is = (ImageSlide)currentSlide;
+		if (is == null)
+			return;
+			
+		Intent panoIntent = new Intent();
+		panoIntent.setAction(Intent.ACTION_VIEW);
+		File imageFile = new File(is.getImagePath());
+		panoIntent.setDataAndType(Uri.fromFile(imageFile), "image/*");
+		if (panoIntent.resolveActivity(getPackageManager()) != null)
+		{
+			startActivity(panoIntent);
+		}
+		else
+		{
+			Toast.makeText(this, "No apps available to view this panorama", Toast.LENGTH_LONG).show();
+		}
 	}
 	
 	private void preload(boolean forwards)

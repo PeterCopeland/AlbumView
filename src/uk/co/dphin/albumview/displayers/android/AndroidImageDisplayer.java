@@ -40,6 +40,7 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	private int imageWidth = -1;
 	private int imageHeight = -1;
 	private boolean imagePortrait;
+	private boolean imagePanoramic;
 	
 	public AndroidImageDisplayer(ImageSlide s)
 	{
@@ -175,6 +176,13 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 			imageHeight = options.outHeight;
 			imageWidth = options.outWidth;
 			imagePortrait = (options.outHeight > options.outWidth);
+			
+			// Consider an image panoramic if it's wider than about 16:9.
+			if (imagePortrait)
+				imagePanoramic = (((float)imageHeight/(float)imageWidth) > 1.8);
+			else
+				imagePanoramic = (((float)imageWidth/(float)imageHeight) > 1.8);
+			
 		}
 	}
 	
@@ -261,6 +269,11 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 		}
 		
 		return frame;
+	}
+	
+	public boolean isPanoramic()
+	{
+		return this.imagePanoramic;
 	}
 	
 	public Bitmap getImage(int size)

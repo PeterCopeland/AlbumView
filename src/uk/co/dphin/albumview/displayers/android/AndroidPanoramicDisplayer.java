@@ -9,4 +9,9 @@ public class AndroidPanoramicDisplayer extends AndroidImageDisplayer implements 
 	{
 		super(s);
 	}
+	
+	public boolean isPanoramic()
+	{
+		return true;
+	}
 }
