@@ -22,7 +22,6 @@ import uk.co.dphin.albumview.storage.android.*;
 
 import android.view.ViewGroup.LayoutParams;
 import uk.co.dphin.albumview.logic.Loader;
-import android.transition.*;
 import android.net.*;
 import java.io.*;
 
@@ -132,24 +131,29 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		}
 		
 		gestureDetect = new GestureDetector(this, this, null);
+		index = getIntent().getIntExtra("slide", 0);
 	}
 	
 	public void onStart()
 	{
 		super.onStart();
 		
-		Intent intent = getIntent();
 		AlbumManager albMan = new AlbumManager();
 		albMan.getReadableDatabase(this);
-		album = albMan.loadAlbum(intent.getIntExtra("album", 0));
+		album = albMan.loadAlbum(getIntent().getIntExtra("album", 0));
 		albMan.closeDB();
-		index = intent.getIntExtra("slide", 0);
 		
 		// Start the slide loader
 		loader = Controller.getController().getLoader();
 		loader.setPlayContext(this);
 		if (!loader.isAlive())
 			loader.start();
+		
+	}
+	
+	public void onResume()
+	{
+		super.onResume();
 		
 		// Load the current slide
 		slides = album.getSlides();
@@ -164,6 +168,14 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		forwardIndex = Math.min(slides.size(), index + Loader.readAheadReduced);
 		reverseIndex = Math.max(0, index - Loader.readAheadReduced);
 		
+		forwardIterator = slides.listIterator(forwardIndex);
+		reverseIterator = slides.listIterator(reverseIndex);
+		
+		if (disp.isPanoramic())
+		{
+			findViewById(R.id.openPanoButton).setVisibility(View.VISIBLE);
+		}
+		
 		// Preload all slides between the forward and reverse indices
 		ListIterator<Slide> preloader = slides.listIterator(reverseIndex);
 		int preloadPointer = reverseIndex;
@@ -174,15 +186,8 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 			preloadPointer++;
 		}
 		
-		forwardIterator = slides.listIterator(forwardIndex);
-		reverseIterator = slides.listIterator(reverseIndex);
+		
 		lastMoveForwards= true; // We always start going forwards
-		
-		if (disp.isPanoramic())
-		{
-			findViewById(R.id.openPanoButton).setVisibility(View.VISIBLE);
-		}
-		
 	}
 		
 	public void onBackPressed()
