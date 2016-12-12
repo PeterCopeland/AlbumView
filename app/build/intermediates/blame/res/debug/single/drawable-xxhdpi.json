@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/drawable-xxhdpi/music.png",
+        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/drawable-xxhdpi/music.png"
+    },
+    {
+        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/drawable-xxhdpi/ic_launcher.png",
+        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/drawable-xxhdpi/ic_launcher.png"
+    }
+]

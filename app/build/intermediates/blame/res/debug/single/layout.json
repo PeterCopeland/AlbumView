@@ -1,0 +1,46 @@
+[
+    {
+        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/albumsmenu.xml",
+        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/layout/albumsmenu.xml"
+    },
+    {
+        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/albumedit.xml",
+        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/layout/albumedit.xml"
+    },
+    {
+        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/filmstripadapter.xml",
+        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/layout/filmstripadapter.xml"
+    },
+    {
+        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/musicsettings.xml",
+        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/layout/musicsettings.xml"
+    },
+    {
+        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/albumlist.xml",
+        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/layout/albumlist.xml"
+    },
+    {
+        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/albumpreview.xml",
+        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/layout/albumpreview.xml"
+    },
+    {
+        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/albumsmenuentry.xml",
+        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/layout/albumsmenuentry.xml"
+    },
+    {
+        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/albumoptionsdialog.xml",
+        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/layout/albumoptionsdialog.xml"
+    },
+    {
+        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/albumplaypaused.xml",
+        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/layout/albumplaypaused.xml"
+    },
+    {
+        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/albumplay.xml",
+        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/layout/albumplay.xml"
+    },
+    {
+        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/albumpreviewblank.xml",
+        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/layout/albumpreviewblank.xml"
+    }
+]
