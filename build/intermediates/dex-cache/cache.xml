@@ -16,7 +16,7 @@
         jumboMode="true"
         optimize="true"
         revision="25.0.1"
-        sha1="067738f139787d032a20b44eaa9a7f18c2ac7b2d">
+        sha1="617c9a486ea2c5e2328318a320c27394e35d283a">
         <dex dex="/home/peter/StudioProjects/AlbumView/app/build/intermediates/pre-dexed/debug/instant-run-bootstrap_e84a42b65935eabdee66eb418c89210de5a4a014.jar" />
     </item>
     <item
@@ -25,7 +25,7 @@
         jumboMode="true"
         optimize="true"
         revision="25.0.1"
-        sha1="76464c8e66d67f28c1cb9fd07958ee4b8a454302">
+        sha1="77af68a12305cddf435dde95ae8995505ab70fda">
         <dex dex="/home/peter/StudioProjects/AlbumView/app/build/intermediates/pre-dexed/debug/instant-run_8df6a2064d68172a3d3da63791576b8a2a2fbe18.jar" />
     </item>
 

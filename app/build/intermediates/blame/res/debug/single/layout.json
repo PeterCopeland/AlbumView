@@ -1,11 +1,11 @@
 [
     {
-        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/albumsmenu.xml",
-        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/layout/albumsmenu.xml"
-    },
-    {
         "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/albumedit.xml",
         "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/layout/albumedit.xml"
+    },
+    {
+        "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/albumsmenu.xml",
+        "source": "/home/peter/StudioProjects/AlbumView/app/src/main/res/layout/albumsmenu.xml"
     },
     {
         "merged": "/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/merged/debug/layout/filmstripadapter.xml",

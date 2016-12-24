@@ -1,5 +1,5 @@
 #Internal package file, do not edit.
-#Mon Dec 12 00:14:21 GMT 2016
+#Tue Dec 13 23:21:03 GMT 2016
 8.set=ANDROID_RESOURCE
 1.base=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_
 1.file=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_/res/layout/albumplay.xml
@@ -14,8 +14,8 @@
 11.file=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_/res/layout/albumlist.xml
 11.base=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_
 9.base=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_
-9.file=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_/res/layout/albumpreviewblank.xml
-13.file=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_/res/layout/albumsmenuentry.xml
+9.file=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_/res/layout/musicsettings.xml
+13.file=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_/res/layout/albumplaypaused.xml
 13.base=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_
 11.set=ANDROID_RESOURCE
 0.set=ANDROID_RESOURCE
@@ -35,14 +35,14 @@
 6.base=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_
 6.file=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_/AndroidManifest.xml
 10.base=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_
-10.file=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_/res/layout/musicsettings.xml
+10.file=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_/res/layout/albumpreviewblank.xml
 13.set=ANDROID_RESOURCE
 8.base=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_
 8.file=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_/res/layout/filmstripadapter.xml
 2.set=ANDROID_RESOURCE
 12.file=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_/res/drawable-mdpi-v4/music.png
 12.base=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_
-14.file=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_/res/layout/albumplaypaused.xml
+14.file=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_/res/layout/albumsmenuentry.xml
 14.base=/home/peter/StudioProjects/AlbumView/app/build/intermediates/res/resources-debug.ap_
 9.set=ANDROID_RESOURCE
 count=16
