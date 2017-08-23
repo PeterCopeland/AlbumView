@@ -26,8 +26,8 @@ public class Loader extends Thread {
 	
 	private BlockingDeque<QueueAction> loadQueue;
 	
-	private int width = 1280;
-	private int height = 760;
+	private int width = 2048;
+	private int height = 1536;
 	
 	// TODO: Remove android-specific code
 	private Context context;

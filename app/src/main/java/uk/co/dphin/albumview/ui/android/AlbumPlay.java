@@ -28,7 +28,7 @@ import java.io.*;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  * 
- * @see SystemUiHider
+ * @see uk.co.dphin.albumview.util.SystemUiHider
  */
 public class AlbumPlay extends Activity implements GestureDetector.OnGestureListener, MediaPlayer.OnCompletionListener
 {
@@ -112,8 +112,8 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		
 		metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
-		Controller.getController().setSize(Displayer.Size_Screen, new Dimension(1280, 760)); // TODO: Screen size
-		Controller.getController().setSize(Displayer.Size_Full, new Dimension(1280, 760)); // TODO: OpenGL max texture size
+		Controller.getController().setSize(Displayer.Size_Screen, new Dimension(2048, 1536)); // TODO: Screen size
+		Controller.getController().setSize(Displayer.Size_Full, new Dimension(2048, 1536)); // TODO: OpenGL max texture size
 		
 		layout = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
 		frame = (RelativeLayout)findViewById(R.id.frame);

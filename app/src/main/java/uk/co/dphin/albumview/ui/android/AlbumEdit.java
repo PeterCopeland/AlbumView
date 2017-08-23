@@ -1,5 +1,6 @@
 package uk.co.dphin.albumview.ui.android;
 
+import android.Manifest;
 import android.app.*;
 import android.content.*;
 import android.database.*;
@@ -9,6 +10,10 @@ import android.provider.*;
 import android.util.*;
 import android.view.*;
 import android.widget.*;
+
+import net.rdrei.android.dirchooser.DirectoryChooserActivity;
+import net.rdrei.android.dirchooser.DirectoryChooserConfig;
+
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -138,7 +143,7 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 	/**
 	 * Launches an intent for the user to select a single image to add to the album
 	 *
-	 * @param View v
+	 * @param v
 	 */
 	public void newImage(View v)
 	{
@@ -158,20 +163,45 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 	/**
 	 * Launches an intent to select a folder and add every image inside to the album
 	 *
-	 * @param View v
+	 * @param v
 	 */
 	public void addFolder(View v)
 	{
 		String chosenDir;
 		boolean newFolderEnabled = false;
-		DirectoryChooserDialog chooser = new DirectoryChooserDialog(this, this);
-		chooser.setNewFolderEnabled(false);
-		try {
-			chooser.chooseDirectory("/Removable"); //TODO: Optional start
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			Log.i("AlbumEdit", "Got version M");
+			if (!Settings.System.canWrite(this)) {
+				Log.i("AlbumEdit", "No write permission");
+				requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
+						Manifest.permission.READ_EXTERNAL_STORAGE}, 2909);
+
+				// TODO: It thinks we don't have permission when we do, so try anyway
+				showDirectoryChooser();
+			} else {
+				Log.i("AlbumEdit", "We can write");
+				showDirectoryChooser();
+			}
+		} else {
+			Log.i("AlbumEdit", "Legacy android");
+			showDirectoryChooser();
 		}
+	}
+
+	private void showDirectoryChooser()
+	{
+//		Log.i("AlbumEdit", "showDirectoryChooser start");
+		final Intent chooserIntent = new Intent(this, DirectoryChooserActivity.class);
+		final DirectoryChooserConfig config = DirectoryChooserConfig.builder()
+				.newDirectoryName("New Directory")
+				.allowReadOnlyDirectory(true)
+				.allowNewDirectoryNameModification(true)
+				.build();
+		chooserIntent.putExtra(DirectoryChooserActivity.EXTRA_CONFIG, config);
+
+		startActivityForResult(chooserIntent, SELECT_FOLDER);
+//		Log.i("AlbumEdit", "showDirectoryChooser end");
 	}
 	
 	public void onChosenDir(String chosenDir)
@@ -192,29 +222,27 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 	
 	protected void onActivityResult(int requestCode, int resultCode, Intent returnedIntent)
 	{
-		if (resultCode == RESULT_OK && returnedIntent != null)
-		{
-			if (requestCode == SELECT_IMAGE)
-			{
-				// Convert the intent return data to a file path
-				Uri selectedImage = returnedIntent.getData();
-				String[] filePathColumn = {MediaStore.Images.Media.DATA};
+		if (requestCode == SELECT_IMAGE && resultCode == RESULT_OK && returnedIntent != null) {
 
-				Cursor cursor = getContentResolver().query(
+			// Convert the intent return data to a file path
+			Uri selectedImage = returnedIntent.getData();
+			String[] filePathColumn = {MediaStore.Images.Media.DATA};
+
+			Cursor cursor = getContentResolver().query(
 					selectedImage, filePathColumn, null, null, null);
-				cursor.moveToFirst();
+			cursor.moveToFirst();
 
-				int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-				String filePath = cursor.getString(columnIndex);
-				cursor.close();
-				
-				// Tell the filmstrip to update
-				updateThumbnails();
-				
-				// Display the image in the main image preview
-				//updateImage();
-			}
-			
+			int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+			String filePath = cursor.getString(columnIndex);
+			cursor.close();
+
+			// Tell the filmstrip to update
+			updateThumbnails();
+
+			// Display the image in the main image preview
+			//updateImage();
+		} else if (requestCode == SELECT_FOLDER && resultCode == DirectoryChooserActivity.RESULT_CODE_DIR_SELECTED) {
+				onChosenDir(returnedIntent.getStringExtra(DirectoryChooserActivity.RESULT_SELECTED_DIR));
 		}
 	}
 	

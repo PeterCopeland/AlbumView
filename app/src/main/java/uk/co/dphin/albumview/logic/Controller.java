@@ -72,10 +72,10 @@ public class Controller
 	
 	public void setSize(int size, Dimension dimension)
 	{
-if (dimension.width == 0 || dimension.height == 0)
-{
-	throw new RuntimeException("dimension has length 0");
-}
+		if (dimension.width == 0 || dimension.height == 0)
+		{
+			throw new RuntimeException("dimension has length 0");
+		}
 		sizes.put(size, dimension);
 	}
 }
