@@ -1,8 +1,10 @@
 package uk.co.dphin.albumview.displayers;
 
+import java.io.Serializable;
+
 import uk.co.dphin.albumview.models.*;
 
-public interface Displayer
+public interface Displayer extends Serializable
 {
 	// TODO: Rename constants to make distinction between basic & full loading clearer
 	/**

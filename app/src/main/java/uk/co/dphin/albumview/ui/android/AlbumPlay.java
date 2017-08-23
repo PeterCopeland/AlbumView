@@ -345,18 +345,9 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		if (is == null)
 			return;
 			
-		Intent panoIntent = new Intent();
-		panoIntent.setAction(Intent.ACTION_VIEW);
-		File imageFile = new File(is.getImagePath());
-		panoIntent.setDataAndType(Uri.fromFile(imageFile), "image/*");
-		if (panoIntent.resolveActivity(getPackageManager()) != null)
-		{
-			startActivity(panoIntent);
-		}
-		else
-		{
-			Toast.makeText(this, "No apps available to view this panorama", Toast.LENGTH_LONG).show();
-		}
+		Intent panoIntent = new Intent(AlbumPlay.this, PanoView.class);
+		panoIntent.putExtra("file", new File(is.getImagePath()));
+		startActivity(panoIntent);
 	}
 	
 	private void preload(boolean forwards)
