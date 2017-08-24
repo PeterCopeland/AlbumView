@@ -37,6 +37,8 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 	// Activity results
 	private static final int SELECT_IMAGE = 100;
 	private static final int SELECT_FOLDER = 110;
+
+	Album album;
 	
     /** Called when the activity is first created. */
     @Override
@@ -55,7 +57,6 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
     	
     	// Check the intent - are we loading an existing album or do we have a title?
     	Intent intent = getIntent();
-		Album album;
 		if (intent.hasExtra("album"))
 		{
 			albMan.getReadableDatabase(this);
@@ -158,6 +159,18 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 	{
 		DialogFragment musicSettings = new MusicSettings();
 		musicSettings.show(getFragmentManager(), "musicSettings");
+	}
+
+	public void sortByName(View v)
+	{
+		album.sortSlides(new SlideNameSorter());
+		updateThumbnails();
+	}
+
+	public void sortByDate(View v)
+	{
+		album.sortSlides(new SlideDateSorter());
+		updateThumbnails();
 	}
 	
 	/**

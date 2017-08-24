@@ -1,6 +1,8 @@
 package uk.co.dphin.albumview.models;
 import java.util.*;
 
+import uk.co.dphin.albumview.logic.SlideSorter;
+
 public class Album
 {
 	private Integer ID = null;
@@ -126,10 +128,19 @@ public class Album
 	
 	/**
 	 * Delete a slide from the album
-	 * @param int index Index of slide to remove
+	 * @param index Index of slide to remove
 	 */
 	public void deleteSlide(int index)
 	{
 		slides.remove(index);
+	}
+
+	/**
+	 * Re-order all the slides in the album
+	 * @param sorter Slide sorter
+     */
+	public void sortSlides(SlideSorter sorter)
+	{
+		slides = sorter.sortSlides(slides);
 	}
 }
