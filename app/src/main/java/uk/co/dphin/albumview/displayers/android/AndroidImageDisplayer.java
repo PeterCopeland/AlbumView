@@ -13,6 +13,8 @@ import uk.co.dphin.albumview.displayers.*;
 import uk.co.dphin.albumview.logic.Controller;
 import uk.co.dphin.albumview.logic.Dimension;
 import uk.co.dphin.albumview.models.*;
+import uk.co.dphin.albumview.ui.android.widgets.SlideFrameLayout;
+
 import android.view.*;
 /**
  * TODO: BitmapRegionDecoder may be useful to display the image full size:
@@ -248,7 +250,7 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 			}
 			else
 			{
-				frame = new FrameLayout(getPlayContext());
+				frame = new SlideFrameLayout(getPlayContext(), getSlide());
 				frame.setMinimumHeight(dim.height);
 				frame.setMinimumWidth(dim.width);
 				frame.setLayoutParams(new LinearLayout.LayoutParams(dim.width, dim.height));

@@ -270,8 +270,10 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 	/**
 	 * Saves the current album.
 	 * Handles using the UI thread to avoid thread conflicts
+	 *
+	 * @Todo revise access
 	 */
-	private void saveAlbum()
+	public void saveAlbum()
 	{
 		runOnUiThread(new Runnable()
 		{
@@ -466,6 +468,7 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 				updateProgress();
 			}
 		}
+
 	}
 	
 }

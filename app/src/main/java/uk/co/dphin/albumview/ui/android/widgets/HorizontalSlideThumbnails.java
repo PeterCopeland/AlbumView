@@ -1,5 +1,6 @@
 package uk.co.dphin.albumview.ui.android.widgets;
 
+import android.app.Activity;
 import android.content.*;
 import android.util.*;
 import android.view.*;
@@ -9,12 +10,13 @@ import uk.co.dphin.albumview.*;
 import uk.co.dphin.albumview.displayers.*;
 import uk.co.dphin.albumview.displayers.android.*;
 import uk.co.dphin.albumview.models.*;
+import uk.co.dphin.albumview.storage.android.AlbumManager;
 import uk.co.dphin.albumview.ui.android.*;
 
 /**
  * A HorizontalScrollView that only loads the slides it needs to display
  */
-public class HorizontalSlideThumbnails extends HorizontalScrollView
+public class HorizontalSlideThumbnails extends HorizontalScrollView implements View.OnDragListener
 {
 	private SlideListing context;
 	
@@ -85,9 +87,6 @@ public class HorizontalSlideThumbnails extends HorizontalScrollView
 	
 	public void updateAlbumView()
 	{
-
-		Log.i("AlbumPlayLoad", "updateAlbumView start");
-//		Toast.makeText(getContext(), "Updating album view", Toast.LENGTH_SHORT).show();
 		// Create image views for each slide
 		int i=0;
 		for (Slide s : album.getSlides())
@@ -104,18 +103,52 @@ public class HorizontalSlideThumbnails extends HorizontalScrollView
 						Toast.makeText(HorizontalSlideThumbnails.this.getContext(), "clicked item", Toast.LENGTH_SHORT).show();
 						// Add an image if we're missing one when the item is clicked
 						Slide clickedSlide = album.getSlides().get(v.getId());
-						Log.i("HorizontalSlideThumbs", "clickedSlide");
 						AndroidDisplayer disp = (AndroidDisplayer)clickedSlide.getDisplayer();
-						Log.i("HorizontalSlideThumbs", "disp");
 						if (!disp.isSizeLoaded(Displayer.Size_Thumb)) {
-							Log.i("HorizontalSlideThumbs", "SizeNotLoaded");
 							disp.load(Displayer.Size_Thumb);
 						}
-						Log.i("HorizontalSlideThumbs", "SizeLoaded");
 						context.selectSlide(v);
-						Log.i("HorizontalSlideThumbs", "selectSlide");
 					}
 				});
+			view.setOnLongClickListener(new OnLongClickListener() {
+				@Override
+				public boolean onLongClick(View v) {
+					// TODO: Is it better to represent the dragged slide as the slide itself, or its number?
+					Slide draggedSlide = album.getSlides().get(v.getId());
+					ClipData.Item item = new ClipData.Item(new Integer(v.getId()).toString());
+					ClipData dragData = ClipData.newPlainText(item.getText(), item.getText());
+					View.DragShadowBuilder shadow = new View.DragShadowBuilder(v);
+					v.startDrag(dragData, shadow, draggedSlide, 0);
+
+					return true;
+				}
+			});
+			view.setOnDragListener(this);
+			// Drag over the sort options to scroll left
+			View sortOptions = ((Activity)getContext()).findViewById(R.id.sortOptions);
+			sortOptions.setOnDragListener(new OnDragListener() {
+				@Override
+				public boolean onDrag(View v, DragEvent event) {
+					switch(event.getAction()) {
+						case DragEvent.ACTION_DRAG_LOCATION:
+							HorizontalSlideThumbnails.this.scrollBy((10*-1), 0);
+					}
+					return true;
+				}
+			});
+
+			// Drag over the add options to scroll right
+			View addOptions = ((Activity)getContext()).findViewById(R.id.addOptions);
+			addOptions.setOnDragListener(new OnDragListener() {
+				@Override
+				public boolean onDrag(View v, DragEvent event) {
+					switch(event.getAction()) {
+						case DragEvent.ACTION_DRAG_LOCATION:
+							HorizontalSlideThumbnails.this.scrollBy(10, 0);
+					}
+					return true;
+				}
+			});
 			if (view.getParent() != null)
 			{
 				((ViewGroup)view.getParent()).removeView(view);
@@ -134,19 +167,16 @@ public class HorizontalSlideThumbnails extends HorizontalScrollView
 		}
 		
 		updateDisplay(getScrollX());
-		Log.i("AlbumPlayLoad", "updateAlbumView finished");
 	}
 	
 	@Override
 	protected void onScrollChanged(int l, int t, int oldl, int oldt)
 	{
-		// TODO: May need to unload formerly visible thumbnails to save RAM
 		updateDisplay(l);
 	}
 	
 	private void updateDisplay(int left)
 	{
-		// TODO: Not working - width comes up as 0 so only loads 2 slides at best
 		// What are the first and last thumbnails that are now visible
 		
 		// Also load one either side to make sure anything sticking out is rendered
@@ -163,6 +193,93 @@ public class HorizontalSlideThumbnails extends HorizontalScrollView
 				d.load(Displayer.Size_Thumb);
 			numDone++;
 		}
-		//Log.i("HorizontalSlideThumbnails", "Update display at "+left+", updated "+numDone+" slides starting at "+firstVisible+" - last visible is "+lastVisible);
+	}
+
+	/**
+	 * Called when a drag event is dispatched to a view. This allows listeners
+	 * to get a chance to override base View behavior.
+	 *
+	 * @param v     The View that received the drag event.
+	 * @param event The {@link DragEvent} object for the drag event.
+	 * @return {@code true} if the drag event was handled successfully, or {@code false}
+	 * if the drag event was not handled. Note that {@code false} will trigger the View
+	 * to call its {@link #onDragEvent(DragEvent) onDragEvent()} handler.
+	 *
+	 * @todo All this should be on the edit page only, not AlbumPlay. This code is shared...
+	 */
+	@Override
+	public boolean onDrag(View v, DragEvent event) {
+		final int action = event.getAction();
+
+		switch (action)
+		{
+			case DragEvent.ACTION_DRAG_STARTED:
+				break;
+			case DragEvent.ACTION_DRAG_ENTERED:
+				break;
+			case DragEvent.ACTION_DRAG_LOCATION:
+				Log.i("DragEventLocation", v.getClass().getSimpleName()+" "+v.getId()+" ("+event.getX()+","+event.getY()+")");
+				// If we're near the edge of the filmstrip, scroll in that direction
+//				if ()
+				break;
+			case DragEvent.ACTION_DROP:
+				if (v instanceof SlideFrameLayout) {
+					SlideFrameLayout slideFrame = (SlideFrameLayout)v;
+					Slide draggedSlide = (Slide)event.getLocalState();
+					Slide droppedOnSlide = slideFrame.getSlide();
+					// If the dragged slide was dropped on the left half of the target slide, move it before. Otherwise put it after.
+					boolean droppedBefore = (event.getX() <= slideFrame.getWidth()/2);
+					Album album = ((SlideListing)getContext()).getAlbum();
+					if (droppedBefore) {
+						album.moveSlideBefore(draggedSlide, droppedOnSlide);
+					} else {
+						album.moveSlideAfter(draggedSlide, droppedOnSlide);
+					}
+
+					((SlideListing)getContext()).updateThumbnails();
+					if (getContext() instanceof AlbumEdit) {
+						((AlbumEdit)getContext()).saveAlbum();
+					}
+
+					return true;
+				}
+				break;
+			case DragEvent.ACTION_DRAG_ENDED:
+				break;
+		}
+		return true;
+	}
+
+	private class SlideDragListener implements View.OnDragListener
+	{
+		/**
+		 * Called when a drag event is dispatched to a view. This allows listeners
+		 * to get a chance to override base View behavior.
+		 *
+		 * @param v     The View that received the drag event.
+		 * @param event The {@link DragEvent} object for the drag event.
+		 * @return {@code true} if the drag event was handled successfully, or {@code false}
+		 * if the drag event was not handled. Note that {@code false} will trigger the View
+		 * to call its {@link #onDragEvent(DragEvent) onDragEvent()} handler.
+		 */
+		@Override
+		public boolean onDrag(View v, DragEvent event) {
+			final int action = event.getAction();
+
+			switch (action)
+			{
+				case DragEvent.ACTION_DRAG_STARTED:
+					break;
+				case DragEvent.ACTION_DRAG_ENTERED:
+					break;
+				case DragEvent.ACTION_DRAG_LOCATION:
+					break;
+				case DragEvent.ACTION_DROP:
+					break;
+				case DragEvent.ACTION_DRAG_ENDED:
+					break;
+			}
+			return true;
+		}
 	}
 }

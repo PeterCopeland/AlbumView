@@ -168,7 +168,6 @@ Log.i("AlbumPlayLoad", "Filmstrip GLL: Set album");
 	
 	public void updateThumbnails()
 	{
-		Log.i("AlbumPlayLoad", "updateThumbnails Started");
 		if (filmstrip != null)
 		{
 			// Load all the slides
@@ -194,7 +193,6 @@ Log.i("AlbumPlayLoad", "Filmstrip GLL: Set album");
 				}
 			});
 		}
-		Log.i("AlbumPlayLoad", "updateThumbnails Finished");
 	}
 	
 	/**
@@ -203,10 +201,8 @@ Log.i("AlbumPlayLoad", "Filmstrip GLL: Set album");
 	 */
 	public void selectSlide(View v)
 	{
-		Log.i("AlbumPlayLoad", "selectSlide (View) started");
 		int slideNum = v.getId();
-		Log.i("SlideListing", "Selected slide "+slideNum);
-		
+
 		// Check this is a valid slide
 		if (slideNum < 0 || slideNum >= album.numSlides())
 		{
@@ -216,12 +212,10 @@ Log.i("AlbumPlayLoad", "Filmstrip GLL: Set album");
 		// Change the active slide
 		activeSlide = album.getSlides().get(slideNum);
 		updateImage();
-		Log.i("AlbumPlayLoad", "selectSlide (View) finished");
 	}
 	
 	protected void updateImage()
 	{
-		Log.i("AlbumPlayLoad", "updateImage started");
 		Log.i("SlideListing", "Updating slide");
 		AndroidImageDisplayer disp = (AndroidImageDisplayer)getActiveSlide().getDisplayer();
 		ImageView imgView = (ImageView)findViewById(R.id.imageView);

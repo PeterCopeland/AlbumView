@@ -62,7 +62,7 @@ public class Album
 	
 	/**
 	 * Add a new slide at the end of the album
-	 * @param Slide s The slide to add
+	 * @param s The slide to add
 	 */
 	public void addSlide(Slide s)
 	{
@@ -71,8 +71,8 @@ public class Album
 	
 	/**
 	 * Add a new slide at a specified point
-	 * @param Slide s The slide to add
-	 * @param int index Position to add slide at
+	 * @param s The slide to add
+	 * @param index Position to add slide at
 	 */
 	public void addSlide(Slide s, int index)
 	{
@@ -84,7 +84,7 @@ public class Album
 	
 	/**
 	 * Add multiple slides to the end of the album
-	 * @param List<Slide> s The slides to add
+	 * @param  s The slides to add
 	 */
 	public void addSlides(List<Slide> s)
 	{
@@ -93,8 +93,8 @@ public class Album
 	
 	/**
 	 * Add multiple slides to the end of the album
-	 * @param List<Slide> s The slides to add
-	 * @param int index Position to put the first slide at
+	 * @param s The slides to add
+	 * @param index Position to put the first slide at
 	 */
 	public void addSlides(List<Slide> s, int index)
 	{
@@ -106,8 +106,8 @@ public class Album
 	
 	/**
 	 * Move a slide to a new position in the album
-	 * @param int from Initial index of the slide
-	 * @param int to Target index of the slide (after removing the slide from its initial position)
+	 * @param from Initial index of the slide
+	 * @param to Target index of the slide (after removing the slide from its initial position)
 	 * @throws IndexOutOfBoundsException Initial or target index is out of range
 	 */
 	public void moveSlide(int from, int to) throws IndexOutOfBoundsException
@@ -124,6 +124,44 @@ public class Album
 		Slide slide = slides.get(from);
 		slides.remove(slide);
 		slides.add(to, slide);
+	}
+
+	/**
+	 * Moves a slide before another slide
+	 *
+	 * @param moveThis
+	 * @param putBefore
+	 *
+	 * @throws IndexOutOfBoundsException If the putBefore slide isn't in the album
+     */
+	public void moveSlideBefore(Slide moveThis, Slide putBefore)
+	{
+		slides.remove(moveThis);
+
+		// No shortcut to just put it before the target slide, we have to get the target slide's index
+		slides.add(
+			slides.indexOf(putBefore),
+			moveThis
+		);
+	}
+
+	/**
+	 * Moves a slide after another slide
+	 *
+	 * @param moveThis
+	 * @param putAfter
+     */
+	public void moveSlideAfter(Slide moveThis, Slide putAfter)
+	{
+		slides.remove(moveThis);
+
+		slides.add(slides.indexOf(putAfter)+1, moveThis);
+	}
+
+	public void moveToEnd(Slide moveThis)
+	{
+		slides.remove(moveThis);
+		slides.add(moveThis);
 	}
 	
 	/**

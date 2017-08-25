@@ -76,7 +76,8 @@
 		<LinearLayout
 			android:orientation="vertical"
 			android:layout_width="144dp"
-			android:layout_height="match_parent">
+			android:layout_height="match_parent"
+			android:id="@+id/sortOptions">
 
 			<Button
 				android:text="Sort by name"
@@ -106,7 +107,8 @@
 		<LinearLayout
 			android:orientation="vertical"
 			android:layout_width="144dp"
-			android:layout_height="match_parent">
+			android:layout_height="match_parent"
+			android:id="@+id/addOptions">
 
 			<Button
                 android:id="@+id/newImageSlide"
