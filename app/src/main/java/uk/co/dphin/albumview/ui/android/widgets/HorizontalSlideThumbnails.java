@@ -100,7 +100,6 @@ public class HorizontalSlideThumbnails extends HorizontalScrollView implements V
 			view.setOnClickListener(new OnClickListener() {
 					public void onClick(View v)
 					{
-						Toast.makeText(HorizontalSlideThumbnails.this.getContext(), "clicked item", Toast.LENGTH_SHORT).show();
 						// Add an image if we're missing one when the item is clicked
 						Slide clickedSlide = album.getSlides().get(v.getId());
 						AndroidDisplayer disp = (AndroidDisplayer)clickedSlide.getDisplayer();

@@ -60,7 +60,6 @@ public abstract class SlideListing extends Activity
 		filmstripObserver.addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
 			public void onGlobalLayout()
 			{
-				Log.i("AlbumPlayLoad", "GlobalLayoutListener triggered on filmstrip");
 				int width = wrapper.getWidth();
 				int height = wrapper.getHeight();
 				
@@ -68,21 +67,16 @@ public abstract class SlideListing extends Activity
 				filmstrip.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 
 				// android:onClick="selectSlide" >
-Log.i("AlbumPlayLoad", "Filmstrip GLL: Created filmstrip");
 
 				filmstripContents = new LinearLayout(SlideListing.this);
 				filmstripContents.setOrientation(LinearLayout.HORIZONTAL);
 				filmstripContents.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.FILL_PARENT));
-Log.i("AlbumPlayLoad", "Filmstrip GLL: Created filmstrip contents");
 				filmstrip.addView(filmstripContents);
 				wrapper.addView(filmstrip);
-Log.i("AlbumPlayLoad", "Filmstrip GLL: Added views");
-				
+
 				filmstrip.setContents(filmstripContents);
-Log.i("AlbumPlayLoad", "Filmstrip GLL: Set contents");
 				filmstrip.setAlbum(album);
-Log.i("AlbumPlayLoad", "Filmstrip GLL: Set album");
-				
+
 				ViewTreeObserver vto = wrapper.getViewTreeObserver();
 				vto.removeGlobalOnLayoutListener(this);
 
@@ -90,48 +84,42 @@ Log.i("AlbumPlayLoad", "Filmstrip GLL: Set album");
 				
 				if (!loader.isAlive())
 					loader.start();
-
-
-
-				Log.i("AlbumPlayLoad", "GlobalLayoutListener triggered on filmstrip - done");
 			}
 		});
-		
+
+		// Wait for the image view & filmstrip containers to initialise so we can get their dimensions
+		final ImageView imgView = (ImageView)findViewById(R.id.imageView);
+		ViewTreeObserver vto = imgView.getViewTreeObserver();
+		vto.addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+			@Override
+			public void onGlobalLayout() {
+				// Load & display the image
+				Controller.getController().setSize(Displayer.Size_Medium, new Dimension(imgView.getWidth(), imgView.getHeight()));
+
+				// Prevent this from repeating on future updates
+				ViewTreeObserver obs = imgView.getViewTreeObserver();
+					obs.removeOnGlobalLayoutListener(this);
+			}
+		});
+
+		Log.i("AlbumPlayLoad", "SlideListing.onStart Finished");
+	}
+
+	public void onResume()
+	{
+		super.onResume();
+
 		// Display the active slide in the main image view
 		if (getActiveSlide() != null)
 		{
-
 			final AndroidImageDisplayer disp = (AndroidImageDisplayer)getActiveSlide().getDisplayer();
 			disp.setPlayContext(this);
 
-			// Wait for the image view & filmstrip containers to initialise so we can get their dimensions
+			// TODO: Does this always happen after we get the size of Size_Medium from the view tree observer?
 			final ImageView imgView = (ImageView)findViewById(R.id.imageView);
-			ViewTreeObserver vto = imgView.getViewTreeObserver();
-			vto.addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
-				@Override
-				public void onGlobalLayout() {
-					Log.i("AlbumPlayLoad", "GlobalLayoutListener triggered on main image");
-					// Load & display the image
-					Controller.getController().setSize(Displayer.Size_Medium, new Dimension(imgView.getWidth(), imgView.getHeight()));
-
-					disp.load(Displayer.Size_Medium);
-
-					imgView.setImageBitmap(disp.getImage(Displayer.Size_Medium));
-
-					// Prevent this from repeating on future updates
-					ViewTreeObserver obs = imgView.getViewTreeObserver();
-					//if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-					//	obs.removeOnGlobalLayoutListener(this);
-					//} else {
-					obs.removeGlobalOnLayoutListener(this);
-					//}
-					Log.i("AlbumPlayLoad", "GlobalLayoutListener triggered on main image - done");
-				}
-			});
-
-
+			disp.load(Displayer.Size_Medium);
+			imgView.setImageBitmap(disp.getImage(Displayer.Size_Medium));
 		}
-		Log.i("AlbumPlayLoad", "SlideListing.onStart Finished");
 	}
 	
 	public void onStop()
@@ -220,7 +208,6 @@ Log.i("AlbumPlayLoad", "Filmstrip GLL: Set album");
 		AndroidImageDisplayer disp = (AndroidImageDisplayer)getActiveSlide().getDisplayer();
 		ImageView imgView = (ImageView)findViewById(R.id.imageView);
 		Log.i("SlideListing", "Image view: "+imgView.getId());
-		imgView.setBackgroundColor(Color.RED);
 		disp.load(Displayer.Size_Medium);
 
 		imgView.setImageBitmap(disp.getImage(Displayer.Size_Medium));
