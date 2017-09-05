@@ -26,32 +26,14 @@ public class SlideDateSorter extends SlideSorter {
         TreeMap<Date, Slide> sorted = new TreeMap<Date, Slide>();
 
         // TODO: Handle non-image slides
-        try {
-            for (Slide s : slides) {
-                ImageSlide is = (ImageSlide) s;
-                ExifInterface exif = new ExifInterface(is.getImagePath());
-                String exifData = exif.getAttribute(ExifInterface.TAG_DATETIME);
-                Date fileDate;
-                if (!exifData.isEmpty()) {
-                    DateFormat exifDateFormat = new SimpleDateFormat("yyyy:MM:dd hh:mm:ss");
-                    fileDate = exifDateFormat.parse(exifData);
-                } else {
-                    // No exif date, fall back to last modified date
-                    fileDate = new Date(new File(is.getImagePath()).lastModified());
-                }
+        for (Slide s : slides) {
+            ImageSlide is = (ImageSlide) s;
 
-                sorted.put(fileDate, s);
-            }
-
-            outputSlides.addAll(sorted.values());
-            return outputSlides;
-
-        } catch (IOException e) {
-            // TODO: Cancel sort and display toast message
-            return slides;
-        } catch (ParseException e) {
-            // TODO
-            return slides;
+            sorted.put(is.getDate(), s);
         }
+
+        outputSlides.addAll(sorted.values());
+        return outputSlides;
+
     }
 }
