@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "25.0.2"
 
     defaultConfig {
         applicationId "uk.co.dphin.albumview"
         minSdkVersion 23
         targetSdkVersion 23
+        multiDexEnabled true
     }
 
     buildTypes {
@@ -25,6 +25,8 @@ repositories {
 }
 
 dependencies {
+    annotationProcessor 'com.google.auto.value:auto-value:1.1'
+
     compile 'com.android.support:support-v4:23.0.0'
     compile 'net.rdrei.android.dirchooser:library:3.2'
 }
