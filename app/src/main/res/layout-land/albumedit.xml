@@ -4,11 +4,10 @@
     android:layout_height="fill_parent"
     >
 
-    <ImageView
+	<ImageView
 		android:id="@+id/imageView"
 		android:layout_width="750dp"
-		android:layout_height="500dp"
-	/>
+		android:layout_height="500dp" />
 
 	<Button
 		android:id="@+id/editSlide"
@@ -143,74 +142,82 @@
 	</LinearLayout>
 
 	<TableLayout
-		android:layout_width="256dp"
+		android:id="@+id/imageMetadata"
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_above="@+id/musicSettings"
 		android:layout_alignParentStart="true"
-		android:layout_marginStart="17dp"
-		android:id="@+id/imageMetadata">
+		android:layout_marginStart="0dp"
+		android:background="#99ffffff"
+		android:padding="10dp">
 
 		<TableRow
 			android:id="@+id/imageFileNameRow"
 			android:layout_width="match_parent"
-			android:layout_height="match_parent">
-			<TextView android:text="Filename" />
+			android:layout_height="wrap_content">
 
 			<TextView
+				android:paddingRight="10dp"
+				android:text="Filename" />
+
+			<TextView
+				android:id="@+id/imageFileName"
 				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:id="@+id/imageFileName" />
+				android:layout_height="wrap_content" />
 		</TableRow>
 
 		<TableRow
 			android:id="@+id/imageFileModDateRow"
 			android:layout_width="match_parent"
-			android:layout_height="match_parent" >
+			android:layout_height="wrap_content">
 
 			<TextView
-				android:text="File modified"
+				android:id="@+id/textView2"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:id="@+id/textView2" />
+				android:paddingRight="10dp"
+				android:text="File modified" />
 
 			<TextView
+				android:id="@+id/imageFileModDate"
 				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:id="@+id/imageFileModDate" />
+				android:layout_height="wrap_content" />
 		</TableRow>
 
 		<TableRow
 			android:id="@+id/imageExifDateRow"
 			android:layout_width="match_parent"
-			android:layout_height="match_parent" >
+			android:layout_height="wrap_content">
 
 			<TextView
-				android:text="EXIF Date"
+				android:id="@+id/textView5"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:id="@+id/textView5" />
+				android:paddingRight="10dp"
+				android:text="EXIF Date" />
 
 			<TextView
+				android:id="@+id/imageExifDate"
 				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:id="@+id/imageExifDate" />
+				android:layout_height="wrap_content" />
 		</TableRow>
 
 		<TableRow
 			android:id="@+id/imageCaptionRow"
 			android:layout_width="match_parent"
-			android:layout_height="match_parent" >
+			android:layout_height="wrap_content">
 
 			<TextView
-				android:text="Caption"
+				android:id="@+id/textView7"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:id="@+id/textView7" />
+				android:paddingRight="10dp"
+				android:text="Caption" />
 
 			<TextView
-				android:layout_width="wrap_content"
+				android:id="@+id/imageCaption"
+				android:layout_width="200dp"
 				android:layout_height="wrap_content"
-				android:id="@+id/imageCaption" />
+				android:maxLines="3" />
 		</TableRow>
 	</TableLayout>
 

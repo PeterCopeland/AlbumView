@@ -29,4 +29,6 @@ dependencies {
 
     compile 'com.android.support:support-v4:23.0.0'
     compile 'net.rdrei.android.dirchooser:library:3.2'
+
+    compile 'com.drewnoakes:metadata-extractor:2.10.1'
 }

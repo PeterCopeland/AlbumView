@@ -201,21 +201,23 @@ public abstract class SlideListing extends Activity
 		activeSlide = album.getSlides().get(slideNum);
 		updateImage();
 	}
-	
+
 	protected void updateImage()
 	{
-		Log.i("SlideListing", "Updating slide");
 		AndroidImageDisplayer disp = (AndroidImageDisplayer)getActiveSlide().getDisplayer();
 		ImageView imgView = (ImageView)findViewById(R.id.imageView);
-		Log.i("SlideListing", "Image view: "+imgView.getId());
+
 		disp.load(Displayer.Size_Medium);
 
 		imgView.setImageBitmap(disp.getImage(Displayer.Size_Medium));
 
-		// Does this slide have music?
-		View hasMusic = findViewById(R.id.hasMusic);
-		if (hasMusic != null)
-			hasMusic.setVisibility(getActiveSlide().hasMusic() ? View.VISIBLE : View.INVISIBLE);
-		Log.i("AlbumPlayLoad", "updateImage finished");
+		onUpdateImage();
 	}
+
+	/**
+	 * Actions to perform when the image is changed.
+	 *
+	 * Overwrite this method to perform an action after a new image is selected
+	 */
+	protected void onUpdateImage() {}
 }

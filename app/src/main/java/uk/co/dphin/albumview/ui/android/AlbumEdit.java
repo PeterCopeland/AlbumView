@@ -15,6 +15,7 @@ import net.rdrei.android.dirchooser.DirectoryChooserActivity;
 import net.rdrei.android.dirchooser.DirectoryChooserConfig;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 import uk.co.dphin.albumview.*;
@@ -283,6 +284,39 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 				Toast.makeText(AlbumEdit.this, "Album saved", Toast.LENGTH_SHORT).show();
 			}
 		});
+	}
+
+	protected void onUpdateImage()
+	{
+		// Update the labels
+		Slide activeSlide = getActiveSlide();
+		if (activeSlide instanceof ImageSlide) {
+			SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss z", Locale.getDefault());
+
+			ImageSlide is = (ImageSlide)activeSlide;
+
+			TextView filenameView = (TextView)findViewById(R.id.imageFileName);
+			filenameView.setText(is.getFileName());
+
+			TextView fileModDate = (TextView) findViewById(R.id.imageFileModDate);
+			fileModDate.setText(dateFormat.format(is.getFileModifiedDate()));
+
+			TextView exifDateView = (TextView)findViewById(R.id.imageExifDate);
+			Date exifDate = is.getExifDate();
+			if (exifDate != null) {
+				exifDateView.setText(dateFormat.format(is.getExifDate()));
+			} else {
+				exifDateView.setText("");
+			}
+
+			TextView caption = (TextView)findViewById(R.id.imageCaption);
+			caption.setText(is.getCaption());
+		}
+
+		// Does this slide have music?
+		View hasMusic = findViewById(R.id.hasMusic);
+		if (hasMusic != null)
+			hasMusic.setVisibility(getActiveSlide().hasMusic() ? View.VISIBLE : View.INVISIBLE);
 	}
 	
 	/**

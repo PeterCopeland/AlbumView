@@ -1,11 +1,19 @@
 package uk.co.dphin.albumview.models;
-import android.media.ExifInterface;
+import android.text.TextUtils;
 import android.util.Log;
 
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifIFD0Directory;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
+import com.drew.metadata.iptc.IptcDirectory;
+
 import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import uk.co.dphin.albumview.displayers.*;
 import uk.co.dphin.albumview.displayers.android.*;
@@ -65,18 +73,16 @@ public class ImageSlide extends Slide
      */
 	public Date getExifDate()
 	{
-		// TODO: Android dependency
+		Date date;
 		try {
-			ExifInterface exif = new ExifInterface(getImagePath());
-			String exifData = exif.getAttribute(ExifInterface.TAG_DATETIME);
-			Date fileDate;
-			if (!exifData.isEmpty()) {
-                DateFormat exifDateFormat = new SimpleDateFormat("yyyy:MM:dd hh:mm:ss");
-                fileDate = exifDateFormat.parse(exifData);
-                return fileDate;
-            } else {
-				return null;
+			// TODO: Store metadata somewhere (or image stream) so we don't read multiple times per slide
+			Metadata metadata = ImageMetadataReader.readMetadata(new File(getImagePath()));
+			date = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class).getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+			if (date == null)
+			{
+				date = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class).getDate(ExifIFD0Directory.TAG_DATETIME);
 			}
+			return date;
 		} catch (Exception e) {
 			Log.w("ImageSlide", e.getClass().getSimpleName()+" while reading Exif date");
 			return null;
@@ -91,6 +97,32 @@ public class ImageSlide extends Slide
 	public Date getFileModifiedDate()
 	{
 		return new Date(new File(getImagePath()).lastModified());
+	}
+
+	public String getCaption()
+	{
+		String caption;
+		try {
+			Metadata metadata = ImageMetadataReader.readMetadata(new File(getImagePath()));
+			List<String> captionParts = new ArrayList<>();
+			String title = metadata.getFirstDirectoryOfType(IptcDirectory.class).getString(IptcDirectory.TAG_OBJECT_NAME);
+			if (title != null && !title.isEmpty())
+				captionParts.add(title);
+			String description = metadata.getFirstDirectoryOfType(IptcDirectory.class).getString(IptcDirectory.TAG_CAPTION);
+			if (description != null && !description.isEmpty())
+				captionParts.add(description);
+
+			caption = TextUtils.join("\n", captionParts);
+		}
+		catch (IOException e)
+		{
+			caption = "Error loading file";
+		}
+		catch (ImageProcessingException e)
+		{
+			caption = "Error parsing image";
+		}
+		return caption;
 	}
 	
 }
