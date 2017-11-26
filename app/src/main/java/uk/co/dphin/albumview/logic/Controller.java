@@ -14,9 +14,14 @@ import uk.co.dphin.albumview.models.*;
 
 public class Controller
 {
+	public static final int MODE_PHOTOS = 1;
+	public static final int MODE_NOTES  = 2;
+
 	private static Controller cont;
 	private Album currentAlbum;
 	private Loader loader;
+
+	private int mode = MODE_PHOTOS;
 	
 	private HashMap<Integer, Dimension> sizes;
 	
@@ -77,5 +82,13 @@ public class Controller
 			throw new RuntimeException("dimension has length 0");
 		}
 		sizes.put(size, dimension);
+	}
+
+	public int getMode() {
+		return mode;
+	}
+
+	public void setMode(int mode) {
+		this.mode = mode;
 	}
 }

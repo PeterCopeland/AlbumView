@@ -3,6 +3,7 @@
 
     <string name="app_name">AlbumView</string>
     <string name="title_activity_album_play">AlbumPlay</string>
+    <string name="title_activity_album_play_notes">AlbumPlay - notes view</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
 

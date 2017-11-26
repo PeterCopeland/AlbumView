@@ -93,16 +93,22 @@ public class PanoView extends Activity {
         if (imageDimensions.width > imageDimensions.height) {
             // Horizontal panorama, fit height to screen
             orientation = SCROLL_HORIZONTAL;
-            ratio = Math.round((float)imageDimensions.height / (float)screenDimensions.height);
+            ratio = Math.max(1,Math.round((float)imageDimensions.height / (float)screenDimensions.height));
             scaleRatio = (double)screenDimensions.height / (double)imageDimensions.height;
-            renderDimensions = new Dimension(imageDimensions.width * ratio, screenDimensions.height);
+            renderDimensions = new Dimension(
+                    imageDimensions.width / ratio,
+                    Math.min(imageDimensions.height, screenDimensions.height)
+            );
         } else {
             // Vertical panorama, fit width to screen
             // Screen will be rotated to vertical, so match the width to screen height
             orientation = SCROLL_VERTICAL;
             ratio = Math.round((float)imageDimensions.width / (float)screenDimensions.height);
             scaleRatio = (double)screenDimensions.width / (double)imageDimensions.width;
-            renderDimensions = new Dimension(imageDimensions.height * ratio, screenDimensions.height);
+            renderDimensions = new Dimension(
+                    imageDimensions.height / ratio,
+                    Math.min(imageDimensions.width, screenDimensions.height)
+            );
         }
 
         // Load a bitmap at this size
@@ -214,32 +220,41 @@ public class PanoView extends Activity {
      */
     private Drawable createLargeDrawable(File source, double scaleRatio) throws IOException
     {
+        double inverseScale = 1/scaleRatio;
+
         // Scale the input bitmap to fit the screen
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = false;
-        options.inSampleSize = 1; // TODO
+        options.inSampleSize = (int)Math.floor(inverseScale);
         Bitmap preScaleBitmap = BitmapFactory.decodeFile(imagePath.getAbsolutePath(), options);
-        Bitmap scaledBitmap = Bitmap.createScaledBitmap(
-                preScaleBitmap,
-                renderDimensions.width,
-                renderDimensions.height,
-                false
-        );
 
-        if (scaledBitmap.getWidth() <= (MAX_SIZE) && scaledBitmap.getHeight() <= (MAX_SIZE)) {
+
+        // Get the scale factor between the preScaleBitmap (integer scaled to save memory) and the display (precise scaling)
+        scaleRatio = (float)renderDimensions.width / preScaleBitmap.getWidth();
+        inverseScale = 1.0/scaleRatio;
+
+        if (renderDimensions.width <= (MAX_SIZE) && renderDimensions.height <= (MAX_SIZE)) {
+            Bitmap scaledBitmap = Bitmap.createScaledBitmap(
+                    preScaleBitmap,
+                    renderDimensions.width,
+                    renderDimensions.height,
+                    false
+            );
+
             return new BitmapDrawable(getResources(), scaledBitmap);
         }
 
-        int rowCount = (int)Math.ceil((float)scaledBitmap.getHeight() / (float)MAX_SIZE);
-        int colCount = (int)Math.ceil((float)scaledBitmap.getWidth() / (float)MAX_SIZE);
+        int rowCount = (int)Math.ceil((float)renderDimensions.height / (float)MAX_SIZE);
+        int colCount = (int)Math.ceil((float)renderDimensions.width / (float)MAX_SIZE);
 
         BitmapDrawable[] drawables = new BitmapDrawable[rowCount * colCount];
 
         int top, bottom, left, right, width, height;
+
         for (int i = 0; i < rowCount; i++) {
             top = MAX_SIZE * i;
             if (i == rowCount - 1) {
-                bottom = scaledBitmap.getHeight();
+                bottom = renderDimensions.height;
             } else {
                 bottom = top + MAX_SIZE;
             }
@@ -248,13 +263,22 @@ public class PanoView extends Activity {
             for (int j = 0; j < colCount; j++) {
                 left = MAX_SIZE * j;
                 if (j == colCount - 1) {
-                    right = scaledBitmap.getWidth();
+                    right = renderDimensions.width;
                 } else {
                     right = left + MAX_SIZE;
                 }
                 width = right - left;
 
-                Bitmap b = Bitmap.createBitmap(scaledBitmap, left, top, width, height);
+                // Snip a piece out of the original bitmap
+                int pieceLeft = (int)(left * inverseScale);
+                int pieceTop = (int)(top * inverseScale);
+                int pieceWidth = Math.min(preScaleBitmap.getWidth()-pieceLeft, (int)(width * inverseScale));
+                int pieceHeight = Math.min(preScaleBitmap.getHeight()-pieceTop, (int)(height * inverseScale));
+                Bitmap preScaledPiece = Bitmap.createBitmap(preScaleBitmap, pieceLeft, pieceTop, pieceWidth, pieceHeight);
+
+                // Scale the piece to display
+                Bitmap b = Bitmap.createScaledBitmap(preScaledPiece, width, height, false);
+
                 BitmapDrawable bd = new BitmapDrawable(getResources(), b);
                 bd.setGravity(Gravity.TOP | Gravity.LEFT);
                 drawables[i * colCount + j] = bd;

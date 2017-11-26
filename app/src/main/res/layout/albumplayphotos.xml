@@ -4,20 +4,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 	android:immersive="true"
-    tools:context=".AlbumPlay">
+    tools:context=".ui.android.AlbumPlayPhotos">
     
     <!-- TODO: Investigate something that will animate sliding between slides -->
 
-    <ViewAnimator
-        android:id="@+id/switcher"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true" >
+	<ViewAnimator
+		android:id="@+id/switcher"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:layout_alignParentLeft="true"
+		android:layout_alignParentRight="true"
+		android:layout_alignParentTop="true">
 
-    </ViewAnimator>
+	</ViewAnimator>
 	<Button
 	    android:id="@+id/openPanoButton"
 	    android:layout_width="wrap_content"

@@ -101,6 +101,30 @@ public class AlbumsMenu extends Fragment {
 		});
 		
 		list.setAdapter(albumsAdapter);
+
+		Switch modeSwitch = (Switch)getActivity().findViewById(R.id.displayMode);
+		modeSwitch.setOnCheckedChangeListener(new Switch.OnCheckedChangeListener()
+		{
+
+			/**
+			 * Called when the checked state of a compound button has changed.
+			 *
+			 * @param buttonView The compound button view whose state has changed.
+			 * @param isChecked  The new checked state of buttonView.
+			 */
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if (isChecked)
+				{
+					// Photos mode
+					Controller.getController().setMode(Controller.MODE_PHOTOS);
+				}
+				else
+				{
+					Controller.getController().setMode(Controller.MODE_NOTES);
+				}
+			}
+		});
 		
 	}
 

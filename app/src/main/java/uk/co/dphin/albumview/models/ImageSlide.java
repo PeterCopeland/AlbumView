@@ -99,20 +99,35 @@ public class ImageSlide extends Slide
 		return new Date(new File(getImagePath()).lastModified());
 	}
 
+	public String getHeading()
+	{
+		String title;
+		try {
+			Metadata metadata = ImageMetadataReader.readMetadata(new File(getImagePath()));
+			title = metadata.getFirstDirectoryOfType(IptcDirectory.class).getString(IptcDirectory.TAG_OBJECT_NAME);
+			if (title == null)
+            {
+                title = "";
+            }
+		} catch (ImageProcessingException e) {
+			title = "";
+		} catch (IOException e) {
+			title = "";
+		}
+
+		return title;
+	}
+
 	public String getCaption()
 	{
 		String caption;
 		try {
 			Metadata metadata = ImageMetadataReader.readMetadata(new File(getImagePath()));
-			List<String> captionParts = new ArrayList<>();
-			String title = metadata.getFirstDirectoryOfType(IptcDirectory.class).getString(IptcDirectory.TAG_OBJECT_NAME);
-			if (title != null && !title.isEmpty())
-				captionParts.add(title);
-			String description = metadata.getFirstDirectoryOfType(IptcDirectory.class).getString(IptcDirectory.TAG_CAPTION);
-			if (description != null && !description.isEmpty())
-				captionParts.add(description);
-
-			caption = TextUtils.join("\n", captionParts);
+			caption = metadata.getFirstDirectoryOfType(IptcDirectory.class).getString(IptcDirectory.TAG_CAPTION);
+			if (caption == null)
+			{
+				caption = "";
+			}
 		}
 		catch (IOException e)
 		{

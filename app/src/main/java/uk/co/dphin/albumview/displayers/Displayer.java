@@ -37,6 +37,11 @@ public interface Displayer extends Serializable
 	 * Medium size - fills most of the screen but with space for thumbnails and controls 
 	 */
 	public final static int Size_Medium = 10;
+
+	/**
+	 * Notes size - fits at the top of the notes screen
+	 */
+	public final static int Size_Notes = 15;
 	
 	/**
 	 * Full screen - fills the available area
@@ -87,5 +92,8 @@ public interface Displayer extends Serializable
 	// TODO: How can we specify the stop music method?
 	
 	public boolean hasPausedMusic(boolean forwards);
-	
+
+	public boolean isPanoramic();
+
+	public Slide getSlide();
 }

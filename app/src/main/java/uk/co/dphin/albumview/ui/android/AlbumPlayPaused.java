@@ -1,28 +1,15 @@
 package uk.co.dphin.albumview.ui.android;
 
-import java.sql.Date;
-
-import android.app.*;
 import android.content.*;
-import android.database.*;
-import android.database.sqlite.SQLiteDatabase;
-import android.net.*;
 import android.os.*;
-import android.provider.*;
-import android.text.format.DateFormat;
 import android.util.*;
 import android.view.*;
 import android.view.View.*;
-import android.view.ViewTreeObserver.*;
 import android.widget.*;
 import uk.co.dphin.albumview.*;
-import uk.co.dphin.albumview.displayers.Displayer;
-import uk.co.dphin.albumview.displayers.android.*;
 import uk.co.dphin.albumview.logic.*;
 import uk.co.dphin.albumview.models.*;
 import uk.co.dphin.albumview.storage.android.AlbumManager;
-import uk.co.dphin.albumview.storage.android.AlbumViewContract;
-import uk.co.dphin.albumview.storage.android.StorageOpenHelper;
 
 public class AlbumPlayPaused extends SlideListing
 {
@@ -74,54 +61,24 @@ public class AlbumPlayPaused extends SlideListing
 		Button buttonPlay = (Button)findViewById(R.id.playButton);
 		buttonPlay.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				Intent playIntent = new Intent(AlbumPlayPaused.this, AlbumPlay.class);
+				Class playClass;
+				switch (Controller.getController().getMode())
+				{
+					case Controller.MODE_PHOTOS:
+					default:
+						playClass = AlbumPlayPhotos.class;
+						break;
+					case Controller.MODE_NOTES:
+						playClass = AlbumPlayNotes.class;
+						break;
+				}
+				Intent playIntent = new Intent(AlbumPlayPaused.this, playClass);
 				playIntent.putExtra("album", getAlbum().getID());
 				playIntent.putExtra("slide", activeSlideNum);
 				startActivityForResult(playIntent, PLAY_ALBUM);
 			}
 		});
-		Log.i("AlbumPlayLoad", "onCreate Finished");
     }
-	
-	public void onStart()
-	{
-		Log.i("AlbumPlayLoad", "onStart Started");
-		super.onStart();
-		
-		// Display the active slide in the main image view
-//		if (getActiveSlide() != null)
-//		{
-//
-//			final AndroidImageDisplayer disp = (AndroidImageDisplayer)getActiveSlide().getDisplayer();
-//
-//			// Wait for the image view to initialise so we can get its dimensions
-//			final ImageView imgView = (ImageView)findViewById(R.id.imageView);
-//			ViewTreeObserver vto = imgView.getViewTreeObserver();
-//			vto.addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
-//					@Override
-//					public void onGlobalLayout() {
-//						// Load & display the image
-//						disp.load(Displayer.Size_Medium);
-//
-//						imgView.setImageBitmap(disp.getImage(Displayer.Size_Medium));
-//
-//						// Setup the filmstrip
-//						AlbumPlayPaused.this.updateThumbnails();
-//
-//						// Prevent this from repeating on future updates
-//						ViewTreeObserver obs = imgView.getViewTreeObserver();
-//						//if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-//						//	obs.removeOnGlobalLayoutListener(this);
-//						//} else {
-//							obs.removeGlobalOnLayoutListener(this);
-//						//}
-//					}
-//				});
-//
-//
-//		}
-		Log.i("AlbumPlayLoad", "onStart finished");
-	}
 	
 	protected void onSaveInstanceState(Bundle state)
 	{

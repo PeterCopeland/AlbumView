@@ -1,8 +1,8 @@
 package uk.co.dphin.albumview.models;
 
-import android.util.Log;
 import uk.co.dphin.albumview.displayers.*;
-import android.media.*;
+
+import java.util.Date;
 
 /**
  * A slide is a single item that can be displayed
@@ -36,4 +36,10 @@ public abstract class Slide
 	{
 		return music;
 	}
+
+	public abstract Date getDate();
+
+	public abstract String getHeading();
+
+	public abstract String getCaption();
 }

@@ -4,15 +4,12 @@ import android.app.*;
 import android.content.*;
 import android.media.*;
 import android.os.*;
-import android.util.*;
 import android.view.*;
-import android.view.ViewGroup.*;
 import android.view.animation.*;
 import android.view.animation.Animation.*;
 import android.widget.*;
-import android.widget.ViewSwitcher.*;
+
 import java.util.*;
-import uk.co.dphin.albumview.*;
 import uk.co.dphin.albumview.displayers.*;
 import uk.co.dphin.albumview.displayers.android.*;
 import uk.co.dphin.albumview.logic.*;
@@ -21,7 +18,7 @@ import uk.co.dphin.albumview.storage.android.*;
 
 import android.view.ViewGroup.LayoutParams;
 import uk.co.dphin.albumview.logic.Loader;
-import android.net.*;
+
 import java.io.*;
 
 /**
@@ -29,16 +26,16 @@ import java.io.*;
  * status bar and navigation/system bar) with user interaction.
  * 
  * @see uk.co.dphin.albumview.util.SystemUiHider
+ *
+ * @todo Split out abstract common functionality with subclasses for notes and photos modes
  */
-public class AlbumPlay extends Activity implements GestureDetector.OnGestureListener, MediaPlayer.OnCompletionListener
+public abstract class AlbumPlay extends Activity implements MediaPlayer.OnCompletionListener
 {
 	/**
 	 * The number of slides to load into memory either side of the current slide
 	 */
 	private static final int readAhead = 1;
-	
-	private DisplayMetrics metrics;
-	
+
 	/**
 	 * The album being displayed
 	 */
@@ -64,7 +61,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 	private int index;
 	private int forwardIndex;
 	private int reverseIndex;
-	
+
 	private Slide currentSlide;
 	/**
 	 * Direction of last move: -1 = backwards, 0 = none, 1 = forwards
@@ -72,9 +69,9 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 	private boolean lastMoveForwards = true;
 	
 	private RelativeLayout frame;
+
 	private ViewAnimator switcher;
 	private LayoutParams layout;
-	private GestureDetector gestureDetect;
 	private Loader loader;
 	
 	private MediaPlayer player;
@@ -105,22 +102,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.albumplay);
-		
-		// Hide the UI
-		findViewById(R.id.frame).setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE | View.SYSTEM_UI_FLAG_LOW_PROFILE);
-		
-		metrics = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getMetrics(metrics);
-		Controller.getController().setSize(Displayer.Size_Screen, new Dimension(2048, 1536)); // TODO: Screen size
-		Controller.getController().setSize(Displayer.Size_Full, new Dimension(2048, 1536)); // TODO: OpenGL max texture size
-		
-		layout = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-		frame = (RelativeLayout)findViewById(R.id.frame);
-		switcher = (ViewAnimator)findViewById(R.id.switcher);
-		//switcher.setFactory(this);
-		//frame.setLayoutParams(layout);
-		
+
 		// Set up transition animations
 		Animation[] transitions = {nextOutTransition, nextInTransition, prevOutTransition, prevInTransition}; 
 		for (Animation a : transitions)
@@ -128,8 +110,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 			a.setDuration(250);
 			a.setInterpolator(new LinearInterpolator());
 		}
-		
-		gestureDetect = new GestureDetector(this, this, null);
+
 		index = getIntent().getIntExtra("slide", 0);
 		
 		musicQueue = new LinkedList<MusicAction>();
@@ -152,31 +133,28 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		
 	}
 	
-	public void onResume()
+	protected void displayInitialSlide()
 	{
-		super.onResume();
-		
 		// Load the current slide
 		slides = album.getSlides();
 		slideIterator = slides.listIterator(index);
 		currentSlide = slideIterator.next();
-		AndroidDisplayer disp = (AndroidDisplayer)loader.waitForDisplayer(currentSlide, Displayer.Size_Full);
+		int displaySize = getDisplaySize();
+		AndroidDisplayer disp = (AndroidDisplayer)loader.waitForDisplayer(currentSlide, displaySize);
 		disp.setPlayContext(this);
 		disp.preActive();
 		disp.active(null, true);
-		switcher.addView(disp.getView(Displayer.Size_Full));
-		
+		View v = disp.getView(getDisplaySize());
+		switcher.addView(v);
+
 		forwardIndex = Math.min(slides.size(), index + Loader.readAheadReduced);
 		reverseIndex = Math.max(0, index - Loader.readAheadReduced);
-		
+
 		forwardIterator = slides.listIterator(forwardIndex);
 		reverseIterator = slides.listIterator(reverseIndex);
-		
-		if (disp.isPanoramic())
-		{
-			findViewById(R.id.openPanoButton).setVisibility(View.VISIBLE);
-		}
-		
+
+		postSlideChange(disp);
+
 		// Preload all slides between the forward and reverse indices
 		ListIterator<Slide> preloader = slides.listIterator(reverseIndex);
 		int preloadPointer = reverseIndex;
@@ -186,10 +164,17 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 			loader.loadDisplayer(s, (Math.abs(index - preloadPointer) < Loader.readAheadFull) ? Displayer.Size_Full : Displayer.Size_Screen);
 			preloadPointer++;
 		}
-		
-		
+
+
 		lastMoveForwards= true; // We always start going forwards
 	}
+
+	/**
+	 * Get the size of photo to display
+	 *
+	 * @return
+	 */
+	protected abstract int getDisplaySize();
 		
 	public void onBackPressed()
 	{
@@ -218,19 +203,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 	
 	// TODO: Could unload large image when pausing
 	
-	public boolean onTouchEvent(MotionEvent e)
-	{
-		this.gestureDetect.onTouchEvent(e);
-		return super.onTouchEvent(e);
-	}
-	
-	@Override
-	public boolean onDown(MotionEvent e) {
-		// Have to return true, or the whole event is discarded
-		return true;
-	}
-	
-	private void changeSlide(final boolean forwards)
+	public void changeSlide(final boolean forwards)
 	{
 		// Make sure the indices are within ranges
 		reverseIndex = Math.max(0, reverseIndex);
@@ -267,14 +240,12 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 			t.show();
 			return;
 		}
-		
-		// Hide the panorama button
-		Button openPano = (Button)findViewById(R.id.openPanoButton);
-		openPano.setVisibility(openPano.INVISIBLE);
-		
+
+		cleanUpBeforeSlideChange();
+
 		preload(forwards);
 				
-		final AndroidDisplayer newDisplayer = (AndroidDisplayer)loader.waitForDisplayer(newSlide,Displayer.Size_Full);
+		final AndroidDisplayer newDisplayer = (AndroidDisplayer)loader.waitForDisplayer(newSlide, getDisplaySize());
 		newDisplayer.preActive();
 		
 		// Switch the view
@@ -300,17 +271,12 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		inTransition.setAnimationListener(new AnimationListener()
 		{
 			public void onAnimationStart(Animation arg0) {}
-			public void onAnimationEnd(Animation arg0) {
-				// Remove the oldview
-				//oldView.setVisibility(View.GONE);
-				//switcher.removeView(oldView);
-				
-			}
+			public void onAnimationEnd(Animation arg0) {}
 			public void onAnimationRepeat(Animation arg0) {}
 		});
 		
 		newDisplayer.setPlayContext(this);
-		View newView = newDisplayer.getView(Displayer.Size_Full);
+		View newView = newDisplayer.getView(getDisplaySize());
 
 		// Need to remove the view from its parent (which it's added to automatically...)
 		ViewParent parent = newView.getParent();
@@ -331,25 +297,15 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		// Notify the slides of the transition
 		oldDisplayer.deactivated(innerNewSlide, forwards);
 		newDisplayer.active(oldSlide, forwards);
-		
-		// Show the open panorama button if needed
-		if (newDisplayer.isPanoramic())
-		{
-			openPano.setVisibility(openPano.VISIBLE);
-		}
+
+		postSlideChange(newDisplayer);
+
 	}
-	
-	public void openPanorama(View view)
-	{
-		ImageSlide is = (ImageSlide)currentSlide;
-		if (is == null)
-			return;
-			
-		Intent panoIntent = new Intent(AlbumPlay.this, PanoView.class);
-		panoIntent.putExtra("file", new File(is.getImagePath()));
-		startActivity(panoIntent);
-	}
-	
+
+	protected abstract void cleanUpBeforeSlideChange();
+
+	protected abstract void postSlideChange(Displayer newDisplayer);
+
 	private void preload(boolean forwards)
 	{
 		/* Preload next slides & unload previous slides
@@ -362,7 +318,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 			// Iterate from the old old reverse iterator to the new forwards iterator 
 			ListIterator<Slide> scan = slides.listIterator(reverseIndex);
 			int scanIndex = reverseIndex;
-			while (scan.hasNext() && scanIndex <= forwardIndex)
+			while (false && scan.hasNext() && scanIndex <= forwardIndex)
 			{
 				Slide s = scan.next();
 				if (scanIndex < index)
@@ -377,7 +333,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 					if (scanIndex < (index + Loader.readAheadFull))
 						loader.loadDisplayer(s, Displayer.Size_Full);
 					else
-						loader.loadDisplayer(s, Displayer.Size_Screen);
+						loader.loadDisplayer(s, getDisplaySize());
 				}
 				scanIndex++;
 			}
@@ -420,7 +376,6 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 	
 	public boolean playingMusic()
 	{
-		// TODO: Implement this method
 		return (player != null && player.isPlaying());
 	}
 	
@@ -438,7 +393,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 	 * Adds a music action to the queue
 	 * 
 	 * @param music Music action to add
-	 * @param endOfQueue If true, clear existing items in the queue before adding this one
+	 * @param clearQueue If true, clear existing items in the queue before adding this one
 	 */
 	public void queueMusic(MusicAction music, boolean clearQueue)
 	{
@@ -447,51 +402,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 		
 		musicQueue.add(music);
 	}
-	
-	// TODO: Refactor into Displayer, passing on the slide it's moving from or to in the active() and deactivated() methods
-	private void postSwitchActions(Slide earlySlide, Slide lateSlide, boolean forwards)
-	{
-		
-	}
-	
-	@Override
-	public void onLongPress(MotionEvent e) {
-		// TODO Auto-generated method stub
-		//Log.d("AlbumPlay", "LongPress");
-		
-	}
 
-	@Override
-	public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
-			float distanceY) {
-		// TODO Auto-generated method stub
-		//Log.d("AlbumPlay", "Scroll ("+distanceX+","+distanceY+")");
-		return false;
-	}
-
-	@Override
-	public void onShowPress(MotionEvent e) {
-		// TODO Auto-generated method stub
-		//Log.d("AlbumPlay", "ShowPress");
-		
-	}
-
-	@Override
-	public boolean onSingleTapUp(MotionEvent e) {
-		// TODO Auto-generated method stub
-		//Log.d("AlbumPlay", "SingleTapUp");
-		
-		// A tap on the right means next slide, a tap on the left means previous slide
-		int tapLoc = (int)e.getX();
-		changeSlide(tapLoc >= metrics.widthPixels/2);
-		
-		return true;
-	}
-	
-	public boolean onFling(MotionEvent p1, MotionEvent p2, float p3, float p4)
-	{
-		return false;
-	}
 
 	/**
 	 * Called when the current music track finishes. Queue up the next track if there is one.
@@ -525,6 +436,19 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 				e.printStackTrace();
 			}
 		}
+	}
+
+
+	public Slide getCurrentSlide() {
+		return currentSlide;
+	}
+
+	public ViewAnimator getSwitcher() {
+		return switcher;
+	}
+
+	public void setSwitcher(ViewAnimator switcher) {
+		this.switcher = switcher;
 	}
 		
 }

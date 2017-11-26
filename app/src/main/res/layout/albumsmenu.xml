@@ -1,0 +1,61 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+
+    <LinearLayout
+        android:id="@+id/albumOptions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <ListView
+            android:id="@+id/albums"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+        </ListView>
+
+        <Button
+            android:id="@+id/newAlbum"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:hint="Create a new album"
+            android:text="New album"
+            android:layout_weight="0">
+
+        </Button>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_weight="0"
+        android:id="@+id/settings">
+
+        <Switch
+            android:id="@+id/displayMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:showText="true"
+            android:splitTrack="false"
+            android:text="Display mode"
+            android:textOff="Notes"
+            android:textOn="Photos" />
+
+        <Button
+            android:id="@+id/network"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:hint="Connect to other devices"
+            android:text="Network"/>
+    </LinearLayout>
+
+</LinearLayout>
+    

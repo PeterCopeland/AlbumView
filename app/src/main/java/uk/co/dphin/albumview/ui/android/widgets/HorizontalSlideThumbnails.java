@@ -109,45 +109,48 @@ public class HorizontalSlideThumbnails extends HorizontalScrollView implements V
 						context.selectSlide(v);
 					}
 				});
-			view.setOnLongClickListener(new OnLongClickListener() {
-				@Override
-				public boolean onLongClick(View v) {
-					// TODO: Is it better to represent the dragged slide as the slide itself, or its number?
-					Slide draggedSlide = album.getSlides().get(v.getId());
-					ClipData.Item item = new ClipData.Item(new Integer(v.getId()).toString());
-					ClipData dragData = ClipData.newPlainText(item.getText(), item.getText());
-					View.DragShadowBuilder shadow = new View.DragShadowBuilder(v);
-					v.startDrag(dragData, shadow, draggedSlide, 0);
+			// TODO: This should be in the AlbumEdit class!!
+			if (context instanceof AlbumEdit) {
+				view.setOnLongClickListener(new OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        // TODO: Is it better to represent the dragged slide as the slide itself, or its number?
+                        Slide draggedSlide = album.getSlides().get(v.getId());
+                        ClipData.Item item = new ClipData.Item(new Integer(v.getId()).toString());
+                        ClipData dragData = ClipData.newPlainText(item.getText(), item.getText());
+                        DragShadowBuilder shadow = new DragShadowBuilder(v);
+                        v.startDrag(dragData, shadow, draggedSlide, 0);
 
-					return true;
-				}
-			});
-			view.setOnDragListener(this);
-			// Drag over the sort options to scroll left
-			View sortOptions = ((Activity)getContext()).findViewById(R.id.sortOptions);
-			sortOptions.setOnDragListener(new OnDragListener() {
-				@Override
-				public boolean onDrag(View v, DragEvent event) {
-					switch(event.getAction()) {
-						case DragEvent.ACTION_DRAG_LOCATION:
-							HorizontalSlideThumbnails.this.scrollBy((10*-1), 0);
-					}
-					return true;
-				}
-			});
+                        return true;
+                    }
+                });
+				view.setOnDragListener(this);
+				// Drag over the sort options to scroll left
+				View sortOptions = ((Activity)getContext()).findViewById(R.id.sortOptions);
+				sortOptions.setOnDragListener(new OnDragListener() {
+                    @Override
+                    public boolean onDrag(View v, DragEvent event) {
+                        switch(event.getAction()) {
+                            case DragEvent.ACTION_DRAG_LOCATION:
+                                HorizontalSlideThumbnails.this.scrollBy((10*-1), 0);
+                        }
+                        return true;
+                    }
+                });
 
-			// Drag over the add options to scroll right
-			View addOptions = ((Activity)getContext()).findViewById(R.id.addOptions);
-			addOptions.setOnDragListener(new OnDragListener() {
-				@Override
-				public boolean onDrag(View v, DragEvent event) {
-					switch(event.getAction()) {
-						case DragEvent.ACTION_DRAG_LOCATION:
-							HorizontalSlideThumbnails.this.scrollBy(10, 0);
-					}
-					return true;
-				}
-			});
+				// Drag over the add options to scroll right
+				View addOptions = ((Activity)getContext()).findViewById(R.id.addOptions);
+				addOptions.setOnDragListener(new OnDragListener() {
+                    @Override
+                    public boolean onDrag(View v, DragEvent event) {
+                        switch(event.getAction()) {
+                            case DragEvent.ACTION_DRAG_LOCATION:
+                                HorizontalSlideThumbnails.this.scrollBy(10, 0);
+                        }
+                        return true;
+                    }
+                });
+			}
 			if (view.getParent() != null)
 			{
 				((ViewGroup)view.getParent()).removeView(view);

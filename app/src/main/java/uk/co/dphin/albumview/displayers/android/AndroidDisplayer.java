@@ -267,6 +267,5 @@ public abstract class AndroidDisplayer implements Displayer
 			player.pause();
 		}
 	}
-	
-	public abstract boolean isPanoramic();
+
 }

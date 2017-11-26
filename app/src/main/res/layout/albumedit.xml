@@ -4,11 +4,10 @@
     android:layout_height="fill_parent"
     >
 
-    <ImageView
+	<ImageView
 		android:id="@+id/imageView"
 		android:layout_width="750dp"
-		android:layout_height="500dp"
-	/>
+		android:layout_height="500dp" />
 
 	<Button
 		android:id="@+id/editSlide"
@@ -36,43 +35,6 @@
 	    android:layout_below="@+id/musicSettings"
 	    android:onClick="deleteSlide"
 	    android:text="Delete" />
-	
-	<FrameLayout
-		android:id="@+id/filmstripContainer"
-	    android:layout_width="fill_parent"
-	    android:layout_height="144dp"
-	    android:layout_alignParentBottom="true"
-	    android:layout_alignParentLeft="true"
-	    android:layout_toLeftOf="@+id/newImageSlide"
-	/>
-
-	<Button
-		android:id="@+id/newImageSlide"
-		android:layout_width="150dp"
-		android:layout_height="48dp"
-		android:layout_above="@+id/addFolder"
-		android:layout_alignRight="@+id/newTitleSlide"
-		android:text="New image"
-		android:onClick="newImage"
-	/>	
-	<Button
-		android:id="@+id/addFolder"
-		android:layout_width="150dp"
-		android:layout_height="48dp"
-		android:layout_above="@+id/newTitleSlide"
-		android:layout_alignRight="@+id/newTitleSlide"
-		android:text="Add folder"
-		android:onClick="addFolder"
-	/>
-	<Button
-		android:id="@+id/newTitleSlide"
-		android:layout_width="150dp"
-		android:layout_height="48dp"
-		android:layout_alignParentBottom="true"
-		android:layout_alignParentRight="true"
-		android:text="New title"
-		android:onClick="newTitle"
-	/>
 
 	<ProgressBar
 		android:id="@+id/addImageProgressBar"
@@ -100,5 +62,163 @@
 	    android:layout_marginLeft="348dp"
 	    android:layout_marginTop="38dp"
 	    android:src="@drawable/music" />
+
+	<LinearLayout
+		android:layout_width="fill_parent"
+		android:layout_height="144dp"
+		android:layout_alignParentBottom="true"
+		android:layout_alignParentLeft="true"
+		android:paddingLeft="16dp"
+		android:paddingRight="16dp"
+		android:orientation="horizontal">
+
+		<LinearLayout
+			android:orientation="vertical"
+			android:layout_width="144dp"
+			android:layout_height="match_parent"
+			android:id="@+id/sortOptions">
+
+			<Button
+				android:text="Sort by name"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:id="@+id/sortByName"
+				android:onClick="sortByName" />
+
+			<Button
+				android:text="Sort by date"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:id="@+id/sortByDate"
+				android:onClick="sortByDate" />
+		</LinearLayout>
+
+		<FrameLayout
+            android:id="@+id/filmstripContainer"
+			android:layout_width="320dp"
+            android:layout_weight="100"
+			android:layout_height="144dp"
+			android:paddingLeft="16dp"
+			android:paddingRight="16dp"
+            android:layout_toLeftOf="@+id/newImageSlide"
+        />
+
+		<LinearLayout
+			android:orientation="vertical"
+			android:layout_width="144dp"
+			android:layout_height="match_parent"
+			android:id="@+id/addOptions">
+
+			<Button
+                android:id="@+id/newImageSlide"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_above="@+id/addFolder"
+                android:layout_alignRight="@+id/newTitleSlide"
+                android:text="New image"
+                android:onClick="newImage"
+            />
+
+			<Button
+                android:id="@+id/addFolder"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_above="@+id/newTitleSlide"
+                android:layout_alignRight="@+id/newTitleSlide"
+                android:text="Add folder"
+                android:onClick="addFolder"
+            />
+
+			<Button
+                android:id="@+id/newTitleSlide"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:text="New title"
+                android:onClick="newTitle"
+            />
+		</LinearLayout>
+	</LinearLayout>
+
+	<TableLayout
+		android:id="@+id/imageMetadata"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignParentStart="true"
+		android:layout_marginStart="0dp"
+		android:background="#99ffffff"
+		android:padding="10dp">
+
+		<TableRow
+			android:id="@+id/imageFileNameRow"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content">
+
+			<TextView
+				android:paddingRight="10dp"
+				android:text="Filename" />
+
+			<TextView
+				android:id="@+id/imageFileName"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" />
+		</TableRow>
+
+		<TableRow
+			android:id="@+id/imageFileModDateRow"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content">
+
+			<TextView
+				android:id="@+id/textView2"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:paddingRight="10dp"
+				android:text="File modified" />
+
+			<TextView
+				android:id="@+id/imageFileModDate"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" />
+		</TableRow>
+
+		<TableRow
+			android:id="@+id/imageExifDateRow"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content">
+
+			<TextView
+				android:id="@+id/textView5"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:paddingRight="10dp"
+				android:text="EXIF Date" />
+
+			<TextView
+				android:id="@+id/imageExifDate"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" />
+		</TableRow>
+
+		<TableRow
+			android:id="@+id/imageCaptionRow"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content">
+
+			<TextView
+				android:id="@+id/textView7"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:paddingRight="10dp"
+				android:text="Caption" />
+
+			<TextView
+				android:id="@+id/imageCaption"
+				android:layout_width="200dp"
+				android:layout_height="wrap_content"
+				android:maxLines="3" />
+		</TableRow>
+	</TableLayout>
 
 </RelativeLayout>
