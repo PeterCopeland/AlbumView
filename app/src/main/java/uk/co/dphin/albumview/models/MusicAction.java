@@ -1,8 +1,10 @@
 package uk.co.dphin.albumview.models;
 
+import java.io.Serializable;
+
 import uk.co.dphin.albumview.R;
 
-public class MusicAction
+public class MusicAction implements Serializable
 {
 	/**
 	 * Play immediately

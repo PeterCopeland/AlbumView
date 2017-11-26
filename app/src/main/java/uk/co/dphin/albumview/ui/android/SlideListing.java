@@ -13,12 +13,14 @@ import android.view.ViewTreeObserver.*;
 import android.widget.*;
 import uk.co.dphin.albumview.*;
 import uk.co.dphin.albumview.displayers.android.*;
+import uk.co.dphin.albumview.listeners.SlideChangeListener;
 import uk.co.dphin.albumview.logic.*;
 import uk.co.dphin.albumview.models.*;
+import uk.co.dphin.albumview.net.android.IncomingRequestHandler;
 import uk.co.dphin.albumview.ui.android.widgets.*;
 import uk.co.dphin.albumview.displayers.*;
 
-public abstract class SlideListing extends Activity
+public abstract class SlideListing extends Activity implements SlideChangeListener
 {
 	private Album album;
 	private Slide activeSlide;
@@ -66,8 +68,6 @@ public abstract class SlideListing extends Activity
 				filmstrip = new HorizontalSlideThumbnails(SlideListing.this);
 				filmstrip.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 
-				// android:onClick="selectSlide" >
-
 				filmstripContents = new LinearLayout(SlideListing.this);
 				filmstripContents.setOrientation(LinearLayout.HORIZONTAL);
 				filmstripContents.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.FILL_PARENT));
@@ -78,7 +78,7 @@ public abstract class SlideListing extends Activity
 				filmstrip.setAlbum(album);
 
 				ViewTreeObserver vto = wrapper.getViewTreeObserver();
-				vto.removeGlobalOnLayoutListener(this);
+				vto.removeOnGlobalLayoutListener(this);
 
 				updateThumbnails();
 				
@@ -102,7 +102,7 @@ public abstract class SlideListing extends Activity
 			}
 		});
 
-		Log.i("AlbumPlayLoad", "SlideListing.onStart Finished");
+		IncomingRequestHandler.getIncomingRequestHandler().registerSlideChangeListener(this);
 	}
 
 	public void onResume()
@@ -125,7 +125,8 @@ public abstract class SlideListing extends Activity
 	public void onStop()
 	{
 		super.onStop();
-		
+
+		IncomingRequestHandler.getIncomingRequestHandler().unregisterSlideChangeListener(this);
 		loader.emptyQueue();
 	}
 	
@@ -172,7 +173,6 @@ public abstract class SlideListing extends Activity
 				}.run();
 			}
 				
-			//Toast.makeText(SlideListing.this, "Wrapper: "+((View)filmstrip.getParent()).getWidth()+"x"+((View)filmstrip.getParent()).getHeight()+", filmstrip: "+filmstrip.getWidth()+"x"+filmstrip.getHeight()+", filmstripcontents: "+filmstripContents.getWidth()+"x"+filmstripContents.getHeight(), Toast.LENGTH_SHORT).show();
 			filmstrip.post(new Runnable()
 			{
 				public void run()
@@ -182,10 +182,28 @@ public abstract class SlideListing extends Activity
 			});
 		}
 	}
-	
+
+	@Override
+	public void selectSlide(Slide slide) {
+		activeSlide = slide;
+		updateImage();
+	}
+
+	@Override
+	public void nextSlide() {
+		// TODO
+	}
+
+	@Override
+	public void prevSlide() {
+		// TODO
+	}
+
 	/**
 	 * Called when the user selects a slide from the filmstrip
 	 * Changes the active slide in the main image view
+	 *
+	 * @todo Remove method, not used any more
 	 */
 	public void selectSlide(View v)
 	{
@@ -198,8 +216,7 @@ public abstract class SlideListing extends Activity
 		}
 		
 		// Change the active slide
-		activeSlide = album.getSlides().get(slideNum);
-		updateImage();
+		selectSlide(album.getSlides().get(slideNum));
 	}
 
 	protected void updateImage()

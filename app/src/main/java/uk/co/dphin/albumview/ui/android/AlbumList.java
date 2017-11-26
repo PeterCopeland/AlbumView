@@ -8,6 +8,7 @@ import android.view.*;
 import android.widget.*;
 import uk.co.dphin.albumview.*;
 import uk.co.dphin.albumview.models.Album;
+import uk.co.dphin.albumview.net.android.IncomingRequestHandler;
 import uk.co.dphin.albumview.storage.android.AlbumManager;
 import uk.co.dphin.albumview.storage.android.StorageOpenHelper;
 
@@ -19,6 +20,8 @@ public class AlbumList extends Activity
 	{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.albumlist);
+
+        IncomingRequestHandler.initialise(this);
         
     }
     

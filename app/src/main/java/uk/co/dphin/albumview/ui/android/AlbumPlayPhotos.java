@@ -17,6 +17,7 @@ import uk.co.dphin.albumview.displayers.ImageDisplayer;
 import uk.co.dphin.albumview.logic.Controller;
 import uk.co.dphin.albumview.logic.Dimension;
 import uk.co.dphin.albumview.models.ImageSlide;
+import uk.co.dphin.albumview.net.android.OutgoingRequestHandler;
 
 /**
  * Created by peter on 25/11/17.
@@ -70,8 +71,16 @@ public class AlbumPlayPhotos extends AlbumPlay implements GestureDetector.OnGest
     public boolean onSingleTapUp(MotionEvent e) {
         // A tap on the right means next slide, a tap on the left means previous slide
         int tapLoc = (int)e.getX();
-        changeSlide(tapLoc >= metrics.widthPixels/2);
+        boolean forwards = tapLoc >= metrics.widthPixels/2;
 
+        if (forwards)
+        {
+            OutgoingRequestHandler.getOutgoingRequestHandler().requestNextSlide();
+        }
+        else
+        {
+            OutgoingRequestHandler.getOutgoingRequestHandler().requestPrevSlide();
+        }
         return true;
     }
 

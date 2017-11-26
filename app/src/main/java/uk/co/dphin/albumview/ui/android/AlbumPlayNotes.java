@@ -15,6 +15,7 @@ import uk.co.dphin.albumview.R;
 import uk.co.dphin.albumview.displayers.Displayer;
 import uk.co.dphin.albumview.logic.Controller;
 import uk.co.dphin.albumview.logic.Dimension;
+import uk.co.dphin.albumview.net.android.OutgoingRequestHandler;
 
 /**
  * Created by peter on 24/11/17.
@@ -59,14 +60,14 @@ public class AlbumPlayNotes extends AlbumPlay {
         prevButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                changeSlide(false);
+                OutgoingRequestHandler.getOutgoingRequestHandler().requestPrevSlide();
             }
         });
 
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                changeSlide(true);
+                OutgoingRequestHandler.getOutgoingRequestHandler().requestNextSlide();
             }
         });
     }

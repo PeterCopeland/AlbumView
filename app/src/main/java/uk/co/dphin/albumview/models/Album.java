@@ -1,9 +1,10 @@
 package uk.co.dphin.albumview.models;
+import java.io.Serializable;
 import java.util.*;
 
 import uk.co.dphin.albumview.logic.SlideSorter;
 
-public class Album
+public class Album implements Serializable
 {
 	private Integer ID = null;
 	private String name;

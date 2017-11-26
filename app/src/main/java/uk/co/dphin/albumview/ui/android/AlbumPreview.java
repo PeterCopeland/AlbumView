@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import uk.co.dphin.albumview.*;
 import uk.co.dphin.albumview.models.Album;
+import uk.co.dphin.albumview.net.android.OutgoingRequestHandler;
 import uk.co.dphin.albumview.storage.android.AlbumManager;
 import uk.co.dphin.albumview.storage.android.AlbumViewContract;
 
@@ -48,9 +49,7 @@ public class AlbumPreview extends Fragment {
 			
 			@Override
 			public void onClick(View v) {
-				Intent intent = new Intent(getActivity(), AlbumPlayPaused.class);
-				intent.putExtra("album", album.getID());
-				startActivity(intent);
+				OutgoingRequestHandler.getOutgoingRequestHandler().requestOpenAlbum(album);
 				
 			}
 		});

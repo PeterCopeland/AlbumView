@@ -9,6 +9,7 @@ import android.widget.*;
 import uk.co.dphin.albumview.*;
 import uk.co.dphin.albumview.logic.*;
 import uk.co.dphin.albumview.models.*;
+import uk.co.dphin.albumview.net.android.IncomingRequestHandler;
 import uk.co.dphin.albumview.storage.android.AlbumManager;
 
 public class AlbumPlayPaused extends SlideListing
@@ -24,7 +25,6 @@ public class AlbumPlayPaused extends SlideListing
 	// TODO: Specific exception
     public void onCreate(Bundle savedInstanceState)
 	{
-		Log.i("AlbumPlayLoad", "onCreate Started");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.albumplaypaused);
 		
@@ -79,7 +79,7 @@ public class AlbumPlayPaused extends SlideListing
 			}
 		});
     }
-	
+
 	protected void onSaveInstanceState(Bundle state)
 	{
 		super.onSaveInstanceState(state);

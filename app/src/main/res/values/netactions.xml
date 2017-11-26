@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="action_requestOpenAlbum">action.album.open</string>
+    <string name="action_requestSelectSlide">action.slide.select</string>
+    <string name="action_requestNextSlide">action.slide.next</string>
+    <string name="action_requestPrevSlide">action.slide.prev</string>
+
+</resources>

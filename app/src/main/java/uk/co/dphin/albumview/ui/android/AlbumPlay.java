@@ -12,8 +12,10 @@ import android.widget.*;
 import java.util.*;
 import uk.co.dphin.albumview.displayers.*;
 import uk.co.dphin.albumview.displayers.android.*;
+import uk.co.dphin.albumview.listeners.SlideChangeListener;
 import uk.co.dphin.albumview.logic.*;
 import uk.co.dphin.albumview.models.*;
+import uk.co.dphin.albumview.net.android.IncomingRequestHandler;
 import uk.co.dphin.albumview.storage.android.*;
 
 import android.view.ViewGroup.LayoutParams;
@@ -29,7 +31,7 @@ import java.io.*;
  *
  * @todo Split out abstract common functionality with subclasses for notes and photos modes
  */
-public abstract class AlbumPlay extends Activity implements MediaPlayer.OnCompletionListener
+public abstract class AlbumPlay extends Activity implements MediaPlayer.OnCompletionListener, SlideChangeListener
 {
 	/**
 	 * The number of slides to load into memory either side of the current slide
@@ -130,7 +132,8 @@ public abstract class AlbumPlay extends Activity implements MediaPlayer.OnComple
 		loader.setPlayContext(this);
 		if (!loader.isAlive())
 			loader.start();
-		
+
+		IncomingRequestHandler.getIncomingRequestHandler().registerSlideChangeListener(this);
 	}
 	
 	protected void displayInitialSlide()
@@ -197,13 +200,31 @@ public abstract class AlbumPlay extends Activity implements MediaPlayer.OnComple
 	public void onStop()
 	{
 		super.onStop();
+
+		IncomingRequestHandler.getIncomingRequestHandler().unregisterSlideChangeListener(this);
 		
 		loader.emptyQueue();
 	}
 	
 	// TODO: Could unload large image when pausing
-	
-	public void changeSlide(final boolean forwards)
+
+
+	@Override
+	public void selectSlide(Slide slide) {
+		// TODO
+	}
+
+	@Override
+	public void nextSlide() {
+		changeSlide(true);
+	}
+
+	@Override
+	public void prevSlide() {
+		changeSlide(false);
+	}
+
+	private void changeSlide(final boolean forwards)
 	{
 		// Make sure the indices are within ranges
 		reverseIndex = Math.max(0, reverseIndex);
