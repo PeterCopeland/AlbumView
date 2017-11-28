@@ -5,17 +5,25 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.AdvertisingOptions;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
 import com.google.android.gms.nearby.connection.ConnectionResolution;
+import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
+import com.google.android.gms.nearby.connection.DiscoveryOptions;
+import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
 import com.google.android.gms.nearby.connection.Strategy;
 
 import uk.co.dphin.albumview.R;
+import uk.co.dphin.albumview.net.android.IncomingRequestHandler;
 import uk.co.dphin.albumview.net.android.OutgoingRequestHandler;
 
 /**
@@ -76,31 +84,119 @@ public class NetworkSettings extends Activity
 
         Button hostButton = (Button)findViewById(R.id.hostButton);
         Button clientButton = (Button)findViewById(R.id.clientButton);
+        Button disconnectButton = (Button)findViewById(R.id.disconnectButton);
 
         hostButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                OutgoingRequestHandler.getOutgoingRequestHandler().setMode(OutgoingRequestHandler.MODE_HOST);
                 Nearby.getConnectionsClient(getApplicationContext()).startAdvertising(
                         Build.MODEL,
                         "uk.co.dphin.albumview",
                         new ConnectionLifecycleCallback() {
                             @Override
-                            public void onConnectionInitiated(String s, ConnectionInfo connectionInfo) {
-
+                            public void onConnectionInitiated(String endpointId, ConnectionInfo connectionInfo) {
+                                Log.d("Networking", "Host initiated connection with " + endpointId);
+                                // Auto-accept connection
+                                Nearby.getConnectionsClient(getApplicationContext()).acceptConnection(
+                                        endpointId,
+                                        IncomingRequestHandler.getIncomingRequestHandler()
+                                );
                             }
 
                             @Override
-                            public void onConnectionResult(String s, ConnectionResolution connectionResolution) {
-
+                            public void onConnectionResult(String endpointId, ConnectionResolution connectionResolution) {
+                                Log.d("Networking", "Host completed connection with " + endpointId + ", result is " + connectionResolution.getStatus().toString());
+                                if (connectionResolution.getStatus().isSuccess())
+                                {
+                                    OutgoingRequestHandler.getOutgoingRequestHandler().registerClient(endpointId);
+                                }
+                                else if (connectionResolution.getStatus().isInterrupted())
+                                {
+                                    Toast.makeText(NetworkSettings.this, "Connection to client was interrupted", Toast.LENGTH_SHORT).show();
+                                }
+                                else if (connectionResolution.getStatus().isCanceled())
+                                {
+                                    Toast.makeText(NetworkSettings.this, "Connection to client was cancelled", Toast.LENGTH_SHORT).show();
+                                }
+                                updateConnectedDevices();
                             }
 
                             @Override
-                            public void onDisconnected(String s) {
-
+                            public void onDisconnected(String endpointId) {
+                                Log.d("Networking", "Host disconnected from " + endpointId);
+                                OutgoingRequestHandler.getOutgoingRequestHandler().removeClient(endpointId);
+                                updateConnectedDevices();
                             }
                         },
                         new AdvertisingOptions(Strategy.P2P_STAR)
                 );
+
+                Log.d("Network", "Started advertising");
+            }
+        });
+
+        clientButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                OutgoingRequestHandler.getOutgoingRequestHandler().setMode(OutgoingRequestHandler.MODE_CLIENT);
+                Nearby.getConnectionsClient(getApplicationContext()).startDiscovery("uk.co.dphin.albumview", new EndpointDiscoveryCallback() {
+                    @Override
+                    public void onEndpointFound(String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
+                        // TODO: User interface
+                        if (discoveredEndpointInfo.getServiceId().equals("uk.co.dphin.albumview"))
+                        {
+                            Log.d("Networking", "Discovered endpoint "+discoveredEndpointInfo.getServiceId() + "("+endpointId+")");
+                            Nearby.getConnectionsClient(getApplicationContext()).requestConnection(
+                                    Build.HOST,
+                                    endpointId,
+                                    new ConnectionLifecycleCallback() {
+                                        @Override
+                                        public void onConnectionInitiated(String endpointId, ConnectionInfo connectionInfo) {
+                                            Log.d("Networking", "Client initiated connection with endpoint "+endpointId);
+                                            // Auto-accept connection
+                                            Nearby.getConnectionsClient(getApplicationContext()).acceptConnection(
+                                                    endpointId,
+                                                    IncomingRequestHandler.getIncomingRequestHandler()
+                                            );
+                                        }
+
+                                        @Override
+                                        public void onConnectionResult(String endpointId, ConnectionResolution connectionResolution) {
+                                            Log.d("Networking", "Client completed connection with "+endpointId+", result is "+connectionResolution.getStatus());
+                                            if (connectionResolution.getStatus().isSuccess())
+                                            {
+                                                OutgoingRequestHandler.getOutgoingRequestHandler().registerClient(endpointId);
+                                            }
+                                            else if (connectionResolution.getStatus().isInterrupted())
+                                            {
+                                                Toast.makeText(NetworkSettings.this, "Connection to host was interrupted", Toast.LENGTH_SHORT).show();
+                                            }
+                                            else if (connectionResolution.getStatus().isCanceled())
+                                            {
+                                                Toast.makeText(NetworkSettings.this, "Connection to host was cancelled", Toast.LENGTH_SHORT).show();
+                                            }
+                                            updateConnectedDevices();
+                                        }
+
+                                        @Override
+                                        public void onDisconnected(String endpointId) {
+                                            Log.d("Networking", "Client disconnected from "+endpointId);
+                                            OutgoingRequestHandler.getOutgoingRequestHandler().removeHost();
+                                            updateConnectedDevices();
+                                        }
+                                    }
+                            );
+                        }
+                    }
+
+                    @Override
+                    public void onEndpointLost(String endpointId) {
+                        Log.d("Networking", "Client lost endpoint "+endpointId);
+                    }
+                },
+                new DiscoveryOptions(Strategy.P2P_STAR));
+                Log.d("Network", "Started listening");
             }
         });
     }
@@ -128,5 +224,35 @@ public class NetworkSettings extends Activity
     @Override
     protected void onResume() {
         super.onResume();
+    }
+
+    private void updateConnectedDevices()
+    {
+        LinearLayout deviceListView = (LinearLayout)findViewById(R.id.deviceListContent);
+        deviceListView.removeAllViews();
+
+        if (OutgoingRequestHandler.getOutgoingRequestHandler().getMode() == OutgoingRequestHandler.MODE_HOST)
+        {
+            TextView thisHost = new TextView(this);
+            thisHost.setText("This device (host)");
+            deviceListView.addView(thisHost);
+
+            for (String endpointId : OutgoingRequestHandler.getOutgoingRequestHandler().getClients())
+            {
+                TextView client = new TextView(this);
+                client.setText(endpointId);
+                deviceListView.addView(client);
+            }
+        }
+        else if (OutgoingRequestHandler.getOutgoingRequestHandler().getMode() == OutgoingRequestHandler.MODE_CLIENT)
+        {
+            TextView host = new TextView(this);
+            host.setText(OutgoingRequestHandler.getOutgoingRequestHandler().getHostEndpoint() + " (host)");
+            deviceListView.addView(host);
+
+            TextView thisClient = new TextView(this);
+            host.setText("This device");
+            deviceListView.addView(thisClient);
+        }
     }
 }
