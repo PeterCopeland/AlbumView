@@ -4,9 +4,11 @@ import android.util.Log;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
+import com.drew.lang.GeoLocation;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
+import com.drew.metadata.exif.GpsDirectory;
 import com.drew.metadata.iptc.IptcDirectory;
 
 import java.io.File;
@@ -101,14 +103,16 @@ public class ImageSlide extends Slide
 
 	public String getHeading()
 	{
-		String title;
+		String title = "";
 		try {
 			Metadata metadata = ImageMetadataReader.readMetadata(new File(getImagePath()));
-			title = metadata.getFirstDirectoryOfType(IptcDirectory.class).getString(IptcDirectory.TAG_OBJECT_NAME);
-			if (title == null)
-            {
-                title = "";
-            }
+			IptcDirectory iptc = metadata.getFirstDirectoryOfType(IptcDirectory.class);
+			if (iptc != null) {
+				title = iptc.getString(IptcDirectory.TAG_OBJECT_NAME);
+				if (title == null) {
+					title = "";
+				}
+			}
 		} catch (ImageProcessingException e) {
 			title = "";
 		} catch (IOException e) {
@@ -120,13 +124,15 @@ public class ImageSlide extends Slide
 
 	public String getCaption()
 	{
-		String caption;
+		String caption = "";
 		try {
 			Metadata metadata = ImageMetadataReader.readMetadata(new File(getImagePath()));
-			caption = metadata.getFirstDirectoryOfType(IptcDirectory.class).getString(IptcDirectory.TAG_CAPTION);
-			if (caption == null)
-			{
-				caption = "";
+			IptcDirectory iptc = metadata.getFirstDirectoryOfType(IptcDirectory.class);
+			if (iptc != null) {
+				caption = iptc.getString(IptcDirectory.TAG_CAPTION);
+				if (caption == null) {
+					caption = "";
+				}
 			}
 		}
 		catch (IOException e)
@@ -138,6 +144,26 @@ public class ImageSlide extends Slide
 			caption = "Error parsing image";
 		}
 		return caption;
+	}
+
+	public GeoLocation getCoordinates()
+	{
+		GeoLocation loc = null;
+		try {
+			Metadata metadata = ImageMetadataReader.readMetadata(new File(getImagePath()));
+			GpsDirectory gps = metadata.getFirstDirectoryOfType(GpsDirectory.class);
+			if (gps != null) {
+				loc = gps.getGeoLocation();
+				if (loc != null && loc.isZero()) {
+					loc = null;
+				}
+			}
+		} catch (ImageProcessingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return loc;
 	}
 	
 }

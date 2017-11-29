@@ -471,5 +471,9 @@ public abstract class AlbumPlay extends Activity implements MediaPlayer.OnComple
 	public void setSwitcher(ViewAnimator switcher) {
 		this.switcher = switcher;
 	}
+
+	protected Album getAlbum() { return album; }
+
+	protected int getIndex() { return index; }
 		
 }

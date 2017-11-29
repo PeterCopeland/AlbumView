@@ -99,23 +99,29 @@
 	<LinearLayout
 		android:id="@+id/controls"
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
+		android:layout_height="160dp"
 		android:layout_weight="0"
 		android:orientation="horizontal">
 
-		<Button
+		<RelativeLayout
 			android:id="@+id/prevButton"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
+			android:layout_width="0dp"
+			android:layout_height="match_parent"
 			android:layout_weight="1"
-			android:text="Previous" />
+			android:background="@android:color/black" />
 
-		<Button
+		<com.google.android.gms.maps.MapView
+			android:id="@+id/mapView"
+			android:layout_width="0dp"
+			android:layout_height="match_parent"
+			android:layout_weight="1" />
+
+		<RelativeLayout
 			android:id="@+id/nextButton"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
+			android:layout_width="0dp"
+			android:layout_height="match_parent"
 			android:layout_weight="1"
-			android:text="Next" />
+			android:background="@android:color/black" />
 	</LinearLayout>
 
 </LinearLayout>
