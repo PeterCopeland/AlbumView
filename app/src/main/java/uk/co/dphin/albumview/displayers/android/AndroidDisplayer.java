@@ -125,8 +125,13 @@ public abstract class AndroidDisplayer implements Displayer
 					}
 				} else {
 					// Queue up this track
-					pc.queueMusic(music, (music.getPlayWhen() == MusicAction.PLAY_NEXT));
-					pc.getPlayer().setOnCompletionListener(pc);
+					if (pc.playingMusic()) {
+						pc.queueMusic(music, (music.getPlayWhen() == MusicAction.PLAY_NEXT));
+						pc.getPlayer().setOnCompletionListener(pc);
+					} else {
+						player.start();
+						pc.setPlayer(player);
+					}
 				}
 			}
 		}
