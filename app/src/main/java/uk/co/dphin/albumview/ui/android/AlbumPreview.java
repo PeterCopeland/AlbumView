@@ -5,6 +5,7 @@ import android.app.Fragment;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,11 +13,19 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
 import uk.co.dphin.albumview.*;
 import uk.co.dphin.albumview.models.Album;
 import uk.co.dphin.albumview.net.android.OutgoingRequestHandler;
 import uk.co.dphin.albumview.storage.android.AlbumManager;
 import uk.co.dphin.albumview.storage.android.AlbumViewContract;
+import uk.co.dphin.albumview.util.ImportExport;
 
 public class AlbumPreview extends Fragment {
 // TODO: Refresh preview if we're coming from the album edit activity
@@ -60,6 +69,30 @@ public class AlbumPreview extends Fragment {
 				Intent intent = new Intent(getActivity(), AlbumEdit.class);
 				intent.putExtra("album", album.getID());
 				startActivity(intent);
+			}
+		});
+
+		((Button)getView().findViewById(R.id.exportButton)).setOnClickListener(new OnClickListener() {
+
+			public void onClick(View v) {
+				String filename = album.getName().replaceAll("/\\s/", "_") + ".xml";
+				File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), filename);
+				String xml = ImportExport.exportAlbumAsXml(album);
+
+				try {
+					file.createNewFile();
+					FileOutputStream fos = new FileOutputStream(file);
+					OutputStreamWriter output = new OutputStreamWriter(fos);
+					output.append(xml);
+					output.close();
+
+					fos.flush();
+					fos.close();
+					Toast.makeText(AlbumPreview.this.getContext(), "Album exported to "+file.getPath(), Toast.LENGTH_LONG).show();
+				} catch (IOException e) {
+					Log.e("Export", "File write failed: "+e.toString());
+				}
+
 			}
 		});
     	
