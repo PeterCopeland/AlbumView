@@ -212,7 +212,7 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 		}
 		if (images.containsKey(dim))
 		{
-			Log.i("Unload", imagePath+": unloaded size "+size+" at "+dim);
+			Log.d("Unload", imagePath+": unloaded size "+size+" at "+dim);
 			Bitmap img = images.get(dim);
 			images.remove(dim);
 		}

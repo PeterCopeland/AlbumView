@@ -158,17 +158,6 @@ public abstract class AlbumPlay extends Activity implements MediaPlayer.OnComple
 
 		postSlideChange(disp);
 
-		// Preload all slides between the forward and reverse indices
-		ListIterator<Slide> preloader = slides.listIterator(reverseIndex);
-		int preloadPointer = reverseIndex;
-		while (preloader.hasNext() && preloadPointer < forwardIndex)
-		{
-			Slide s = preloader.next();
-			loader.loadDisplayer(s, (Math.abs(index - preloadPointer) < Loader.readAheadFull) ? Displayer.Size_Full : Displayer.Size_Screen);
-			preloadPointer++;
-		}
-
-
 		lastMoveForwards= true; // We always start going forwards
 	}
 
@@ -320,6 +309,30 @@ public abstract class AlbumPlay extends Activity implements MediaPlayer.OnComple
 		newDisplayer.active(oldSlide, forwards);
 
 		postSlideChange(newDisplayer);
+
+		// Preload all slides between the forward and reverse indices
+		ListIterator<Slide> preloader = slides.listIterator(reverseIndex);
+		int preloadPointer = reverseIndex;
+		while (preloader.hasNext() && preloadPointer < forwardIndex)
+		{
+			Slide s = preloader.next();
+			loader.loadDisplayer(s, (Math.abs(index - preloadPointer) < Loader.readAheadFull) ? Displayer.Size_Full : getDisplaySize());
+			preloadPointer++;
+		}
+
+		// Unload all slides outside the forward and reverse indices
+		ListIterator<Slide> unloader = slides.listIterator(0);
+		while (unloader.hasNext() && unloader.nextIndex() != reverseIndex)
+		{
+			Slide s = unloader.next();
+			loader.unloadDisplayer(s, getDisplaySize());
+		}
+		unloader = slides.listIterator(forwardIndex + 1);
+		while (unloader.hasNext())
+		{
+			Slide s = unloader.next();
+			loader.unloadDisplayer(s, getDisplaySize());
+		}
 
 	}
 

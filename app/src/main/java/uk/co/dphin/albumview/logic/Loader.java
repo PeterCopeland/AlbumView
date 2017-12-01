@@ -156,6 +156,16 @@ public class Loader extends Thread {
 			loadQueue.addLast(qa);
 		notify();
 	}
+
+	public synchronized void unloadDisplayer(Slide slide, int size)
+	{
+		// TODO: Use separate thread
+		Displayer displayer = slide.getDisplayer();
+		if (displayer.isSizeLoaded(size))
+		{
+			displayer.unload(size);
+		}
+	}
 	
 	/**
 	 * Cancels loading a displayer.
