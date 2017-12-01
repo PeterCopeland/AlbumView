@@ -116,8 +116,9 @@ public class AlbumManager {
 		
 		// Update this album
 		ContentValues cv = new ContentValues();
-		if (album.getID() != null)
-			cv.put(AlbumViewContract.Album._ID, album.getID());
+		if (album.getID() == null)
+			album.setID(Integer.valueOf((int)(Math.random()*Integer.MAX_VALUE))); // TODO
+		cv.put(AlbumViewContract.Album._ID, album.getID());
 		cv.put(AlbumViewContract.Album.ColumnNameName, album.getName());
 		cv.put(AlbumViewContract.Album.ColumnNameCreated, AlbumViewContract.SQLDateFormat.format(album.getCreated()));
 		cv.put(AlbumViewContract.Album.ColumnNameUpdated, AlbumViewContract.SQLDateFormat.format(new Date()));

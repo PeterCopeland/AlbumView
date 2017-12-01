@@ -7,17 +7,25 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.*;
 import android.view.*;
 import android.view.View.OnClickListener;
-import android.webkit.WebView.FindListener;
 import android.widget.*;
 import android.widget.AdapterView.OnItemClickListener;
 import uk.co.dphin.albumview.R;
 import uk.co.dphin.albumview.logic.*;
 import uk.co.dphin.albumview.models.*;
+import uk.co.dphin.albumview.storage.android.AlbumManager;
 import uk.co.dphin.albumview.storage.android.AlbumViewContract;
 import uk.co.dphin.albumview.storage.android.StorageOpenHelper;
-import android.util.*;
+import uk.co.dphin.albumview.util.Importer;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.zip.ZipFile;
 
 public class AlbumsMenu extends Fragment {
+
+	private static final int IMPORT_ALBUM_SELECT_FILE = 100;
+
+	private ListView list;
 
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) 
 	{
@@ -29,9 +37,10 @@ public class AlbumsMenu extends Fragment {
 	public void onResume() {
 		super.onResume();
 		
-		ListView list = (ListView)getActivity().findViewById(R.id.albums);
+		list = (ListView)getActivity().findViewById(R.id.albums);
 		Button newAlbum = (Button)getActivity().findViewById(R.id.newAlbum);
-		
+		Button importAlbum = (Button)getActivity().findViewById(R.id.importAlbum);
+
 		// Get the existing albums TODO - multithread
 		StorageOpenHelper dbHelper = new StorageOpenHelper(getActivity());
 		SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -99,6 +108,35 @@ public class AlbumsMenu extends Fragment {
 				dialog.show();
 			}
 		});
+
+		importAlbum.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				File importFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "album_import.zip");
+				if (importFile.isFile()) {
+					try {
+						Album album = Importer.importAlbumFromZip(
+                            new ZipFile(importFile),
+                            getContext().getExternalFilesDir(null)
+                        );
+						if (album != null) {
+							AlbumManager albMan = new AlbumManager();
+							albMan.getWritableDatabase(getContext());
+							albMan.saveAlbum(album);
+							list.deferNotifyDataSetChanged();
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+
+				// TODO: Proper file support
+//				Intent fileChooserIntent = new Intent(Intent.ACTION_GET_CONTENT);
+//				fileChooserIntent.setType("*/*");
+//				fileChooserIntent.addCategory(Intent.CATEGORY_OPENABLE);
+//				startActivityForResult(fileChooserIntent, IMPORT_ALBUM_SELECT_FILE);
+			}
+		});
 		
 		list.setAdapter(albumsAdapter);
 
@@ -125,7 +163,22 @@ public class AlbumsMenu extends Fragment {
 				}
 			}
 		});
+
+		Button netButton = (Button)getActivity().findViewById(R.id.network);
+		netButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(getActivity(), NetworkSettings.class);
+				startActivity(intent);
+			}
+		});
 		
+	}
+
+	public void onActivityResult(int requestCode, int resultCode, Intent returnedIntent) {
+		if (requestCode == IMPORT_ALBUM_SELECT_FILE && resultCode == Activity.RESULT_OK && returnedIntent != null) {
+			Toast.makeText(getContext(), returnedIntent.getDataString(), Toast.LENGTH_LONG).show();
+		}
 	}
 
 } 

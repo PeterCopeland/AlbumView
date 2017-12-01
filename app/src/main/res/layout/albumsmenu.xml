@@ -28,6 +28,15 @@
             android:layout_weight="0">
 
         </Button>
+        <Button
+            android:id="@+id/importAlbum"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:hint="Import an album"
+            android:text="Import album"
+            android:layout_weight="0">
+
+        </Button>
 
     </LinearLayout>
 
