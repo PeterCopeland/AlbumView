@@ -327,11 +327,12 @@ public abstract class AlbumPlay extends Activity implements MediaPlayer.OnComple
 			Slide s = unloader.next();
 			loader.unloadDisplayer(s, getDisplaySize());
 		}
-		unloader = slides.listIterator(forwardIndex + 1);
-		while (unloader.hasNext())
-		{
-			Slide s = unloader.next();
-			loader.unloadDisplayer(s, getDisplaySize());
+		if (slides.size() > forwardIndex + 1) {
+			unloader = slides.listIterator(forwardIndex + 1);
+			while (unloader.hasNext()) {
+				Slide s = unloader.next();
+				loader.unloadDisplayer(s, getDisplaySize());
+			}
 		}
 
 	}
