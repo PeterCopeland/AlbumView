@@ -311,7 +311,7 @@ public abstract class AlbumPlay extends Activity implements MediaPlayer.OnComple
 		postSlideChange(newDisplayer);
 
 		// Preload all slides between the forward and reverse indices
-		ListIterator<Slide> preloader = slides.listIterator(reverseIndex);
+		ListIterator<Slide> preloader = slides.listIterator(Math.max(reverseIndex,0));
 		int preloadPointer = reverseIndex;
 		while (preloader.hasNext() && preloadPointer < forwardIndex)
 		{
