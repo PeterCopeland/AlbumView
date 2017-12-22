@@ -10,6 +10,7 @@ import uk.co.dphin.albumview.*;
 import uk.co.dphin.albumview.displayers.*;
 import uk.co.dphin.albumview.displayers.android.*;
 import uk.co.dphin.albumview.models.*;
+import uk.co.dphin.albumview.net.action.SelectSlide;
 import uk.co.dphin.albumview.net.android.OutgoingRequestHandler;
 import uk.co.dphin.albumview.storage.android.AlbumManager;
 import uk.co.dphin.albumview.ui.android.*;
@@ -107,7 +108,9 @@ public class HorizontalSlideThumbnails extends HorizontalScrollView implements V
 						if (!disp.isSizeLoaded(Displayer.Size_Thumb)) {
 							disp.load(Displayer.Size_Thumb);
 						}
-						OutgoingRequestHandler.getOutgoingRequestHandler().requestSelectSlide(clickedSlide);
+						OutgoingRequestHandler.getOutgoingRequestHandler().handleAction(
+								new SelectSlide(clickedSlide)
+						);
 					}
 				});
 			// TODO: This should be in the AlbumEdit class!!

@@ -22,6 +22,7 @@ import java.io.OutputStreamWriter;
 
 import uk.co.dphin.albumview.*;
 import uk.co.dphin.albumview.models.Album;
+import uk.co.dphin.albumview.net.action.OpenAlbum;
 import uk.co.dphin.albumview.net.android.OutgoingRequestHandler;
 import uk.co.dphin.albumview.storage.android.AlbumManager;
 import uk.co.dphin.albumview.util.Exporter;
@@ -57,7 +58,9 @@ public class AlbumPreview extends Fragment {
 			
 			@Override
 			public void onClick(View v) {
-				OutgoingRequestHandler.getOutgoingRequestHandler().requestOpenAlbum(album);
+				OutgoingRequestHandler.getOutgoingRequestHandler().handleAction(
+						new OpenAlbum(album)
+				);
 				
 			}
 		});

@@ -1,15 +1,20 @@
 package uk.co.dphin.albumview.net.android;
 
+import android.util.Log;
+
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.Payload;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.List;
 
 import uk.co.dphin.albumview.models.Album;
 import uk.co.dphin.albumview.models.Slide;
+import uk.co.dphin.albumview.net.action.Action;
 
 /**
  * Handles requests made from this client, and sends them out to the network
@@ -31,17 +36,19 @@ public class OutgoingRequestHandler {
     /**
      * List of connected client IDs. Will only be populated if this is the host.
      */
-    private List<String> endpointIds;
+    private List<InetAddress> clients;
 
     /**
      * Endpoint ID of the host. Will only be populated if this is the client.
      */
-    private String hostEndpoint;
+    private InetAddress host;
 
     private int mode;
 
-    private OutgoingRequestHandler() {
+    private OutgoingRequestHandler()
+    {
         mode = MODE_STANDALONE;
+        clients = new ArrayList<>();
     }
 
     public static OutgoingRequestHandler getOutgoingRequestHandler()
@@ -57,130 +64,89 @@ public class OutgoingRequestHandler {
     public void setMode(int mode)
     {
         this.mode = mode;
+
+        switch(mode)
+        {
+            case MODE_STANDALONE:
+                Log.d("Networking", "Entering standalone mode");
+                removeAllClients();
+                removeHost();
+                // TODO: Tell net API to disconnect everything
+                break;
+            case MODE_HOST:
+                Log.d("Networking", "Entering host mode");
+                removeHost();
+                // TODO: Tell net API to disconnect everything
+                break;
+            case MODE_CLIENT:
+                Log.d("Networking", "Entering client mode");
+                removeAllClients();
+                // TODO: Tell net API to disconnect everything
+                break;
+        }
     }
 
-    /**
-     * Request all clients to open the specified album
-     *
-     * For now, only the host can do this because albums are only stored on the host.
-     * It needs to stream the full contents of the album, but images are only filenames at this point
-     *
-     * @todo Strip filenames - potential security risk?
-     *
-     * @param album Allbum to open
-     */
-    public void requestOpenAlbum(Album album)
+    public int getMode()
     {
-        switch(mode) {
+        return mode;
+    }
+
+    public void handleAction(Action action) {
+
+        // Always carry out the action locally
+        IncomingRequestHandler.getIncomingRequestHandler().handleAction(action);
+
+        switch (mode) {
             case MODE_STANDALONE:
-                IncomingRequestHandler.getIncomingRequestHandler().openAlbum(album);
+
                 break;
 
             case MODE_HOST:
-                Payload request = Payload.fromBytes(ACTION_OPENALBUM.getBytes());
-                sendPayloadToClients(request);
-
-                try {
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    ObjectOutputStream out = new ObjectOutputStream(bos);
-                    out.writeObject(album);
-                    Payload payload = Payload.fromBytes(bos.toByteArray());
-
-                    sendPayloadToClients(payload);
-
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                break;
+                // TODO
 
             case MODE_CLIENT:
-                // For now, don't do anything - only hosts can
+                // TODO
 
         }
     }
 
-    /**
-     * Select a particular slide within the current album
-     *
-     * @param slide
-     */
-    public void requestSelectSlide(Slide slide)
+
+
+    public void registerClient(InetAddress newClient)
     {
-        switch (mode)
-        {
-            case MODE_STANDALONE:
-                IncomingRequestHandler.getIncomingRequestHandler().selectSlide(slide);
-        }
+        clients.add(newClient);
     }
 
-    /**
-     * Move to the next slide
-     */
-    public void requestNextSlide()
+    public void removeClient(InetAddress oldClient)
     {
-        Payload request;
-
-        switch (mode)
-        {
-            case MODE_STANDALONE:
-                IncomingRequestHandler.getIncomingRequestHandler().nextSlide();
-                break;
-            case MODE_HOST:
-                request = Payload.fromBytes(ACTION_SLIDE_NEXT.getBytes());
-                sendPayloadToClients(request);
-                break;
-            case MODE_CLIENT:
-                request = Payload.fromBytes(ACTION_SLIDE_NEXT.getBytes());
-                sendPayloadToHost(request);
-                break;
-        }
+        clients.remove(oldClient);
     }
 
-    /**
-     * Move to the next slide
-     */
-    public void requestPrevSlide()
+    public void removeAllClients()
     {
-        Payload request;
-
-        switch (mode)
-        {
-            case MODE_STANDALONE:
-                IncomingRequestHandler.getIncomingRequestHandler().prevSlide();
-                break;
-            case MODE_HOST:
-                request = Payload.fromBytes(ACTION_SLIDE_PREV.getBytes());
-                sendPayloadToClients(request);
-                break;
-            case MODE_CLIENT:
-                request = Payload.fromBytes(ACTION_SLIDE_PREV.getBytes());
-                sendPayloadToHost(request);
-                break;
-        }
+        clients.clear();
     }
 
-    public byte[] stringToByteArray(String s)
+    public void registerHost(InetAddress newHost)
     {
-        return s.getBytes();
+        Log.i("Networking", "Connected to host " + newHost.getHostName() + "("+newHost.getHostAddress()+")");
+        host = newHost;
     }
 
-    private void sendPayloadToHost(Payload payload)
+    public void removeHost()
     {
-        Nearby.Connections.sendPayload(
-                null, //tODO
-                hostEndpoint,
-                payload
-        );
+        host = null;
     }
 
-    private void sendPayloadToClients(Payload payload)
+    public List<InetAddress> getClients()
     {
-        Nearby.Connections.sendPayload(
-                null, //tODO
-                endpointIds,
-                payload
-        );
+        // Copy the list so it can be safely modified by the receiver
+        return new ArrayList<>(clients);
+    }
+
+    public InetAddress getHost()
+    {
+        return host;
     }
 
 }

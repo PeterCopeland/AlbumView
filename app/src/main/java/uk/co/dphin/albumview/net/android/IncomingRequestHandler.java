@@ -2,6 +2,7 @@ package uk.co.dphin.albumview.net.android;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.util.Log;
 
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
@@ -12,6 +13,11 @@ import java.util.HashSet;
 
 import uk.co.dphin.albumview.listeners.SlideChangeListener;
 import uk.co.dphin.albumview.models.*;
+import uk.co.dphin.albumview.net.action.Action;
+import uk.co.dphin.albumview.net.action.MoveToNextSlide;
+import uk.co.dphin.albumview.net.action.MoveToPreviousSlide;
+import uk.co.dphin.albumview.net.action.OpenAlbum;
+import uk.co.dphin.albumview.net.action.SelectSlide;
 import uk.co.dphin.albumview.ui.android.AlbumPlayPaused;
 
 /**
@@ -61,14 +67,36 @@ public class IncomingRequestHandler extends PayloadCallback {
         return incomingRequestHandler;
     }
 
-    public void openAlbum(Album album)
+    public void handleAction(Action action)
+    {
+        if (action instanceof OpenAlbum)
+        {
+            openAlbum((Album)action.getAdditionalData());
+        }
+        else if (action instanceof SelectSlide)
+        {
+            selectSlide((Slide)action.getAdditionalData());
+        }
+        else if (action instanceof MoveToNextSlide) {
+            nextSlide();
+        }
+        else if (action instanceof MoveToPreviousSlide) {
+            prevSlide();
+        }
+        else
+        {
+            Log.w("RequestHandler", "Unknown action type: " + action.getClass().getSimpleName());
+        }
+    }
+
+    private void openAlbum(Album album)
     {
         Intent intent = new Intent(activity, AlbumPlayPaused.class);
         intent.putExtra("album", album.getID());
         activity.startActivity(intent);
     }
 
-    public void selectSlide(Slide slide)
+    private void selectSlide(Slide slide)
     {
         for (SlideChangeListener listener : slideChangeListeners)
         {
@@ -76,7 +104,7 @@ public class IncomingRequestHandler extends PayloadCallback {
         }
     }
 
-    public void nextSlide()
+    private void nextSlide()
     {
         for (SlideChangeListener listener : slideChangeListeners)
         {
@@ -84,7 +112,7 @@ public class IncomingRequestHandler extends PayloadCallback {
         }
     }
 
-    public void prevSlide()
+    private void prevSlide()
     {
         for (SlideChangeListener listener : slideChangeListeners)
         {
@@ -114,7 +142,8 @@ public class IncomingRequestHandler extends PayloadCallback {
 
     @Override
     public void onPayloadReceived(String s, Payload payload) {
-
+        Log.d("Networking", "Received payload");
+        Log.d("Networking", payload.toString());
     }
 
     @Override
