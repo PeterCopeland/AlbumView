@@ -182,4 +182,19 @@ public class Album implements Serializable
 	{
 		slides = sorter.sortSlides(slides);
 	}
+
+	public int getIndexOfSlide(Slide slide) throws SlideNotInAlbumException
+	{
+		if (!slides.contains(slide))
+		{
+			throw new SlideNotInAlbumException();
+		}
+
+		return slides.indexOf(slide);
+	}
+
+	public Slide getSlideByIndex(int index) throws IndexOutOfBoundsException
+	{
+		return slides.get(index);
+	}
 }

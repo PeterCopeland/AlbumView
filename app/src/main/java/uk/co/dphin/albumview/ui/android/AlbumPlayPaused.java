@@ -9,7 +9,6 @@ import android.widget.*;
 import uk.co.dphin.albumview.*;
 import uk.co.dphin.albumview.logic.*;
 import uk.co.dphin.albumview.models.*;
-import uk.co.dphin.albumview.net.android.IncomingRequestHandler;
 import uk.co.dphin.albumview.storage.android.AlbumManager;
 
 public class AlbumPlayPaused extends SlideListing
@@ -93,38 +92,31 @@ public class AlbumPlayPaused extends SlideListing
 		super.onStop();
 		albMan.closeDB();
 	}
-	
+
 	/**
-	 * Called when the user selects a slide from the filmstrip
-	 * Changes the active slide in the main image view
+	 * When the slide is changed, record the slide index so we can pass it on to AlbumPlay
+	 * @param s
 	 */
-	public void selectSlide(View v)
+	public void selectSlide(Slide s)
 	{
-		selectSlide(v.getId());
-		
-	}
-	
-	public void selectSlide(int slideIndex)
-	{
-		Log.i("AlbumPlayLoad", "selectSlide (int) started");
-		// Check this is a valid slide
-		if (slideIndex < 0 || slideIndex >= getAlbum().numSlides())
-		{
-			throw new IndexOutOfBoundsException("Slide number is out of range");
+		try {
+			activeSlideNum = getAlbum().getIndexOfSlide(s);
+			super.selectSlide(s);
 		}
-				
-		// Change the active slide
-		setActiveSlide(getAlbum().getSlides().get(slideIndex));
-		activeSlideNum = slideIndex;
-		updateImage();
-		Log.i("AlbumPlayLoad", "selectSlide (int) finished");
+		catch (SlideNotInAlbumException e)
+		{
+			Log.e("AlbumPlay", "Selected a slide that isn't in this album!");
+		}
 	}
 	
 	public void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
 		if (requestCode == PLAY_ALBUM && data != null)
 		{
-			selectSlide(data.getIntExtra("slide", 0));
+			Slide finishSlide = getAlbum().getSlideByIndex(
+					data.getIntExtra("slide", 0)
+			);
+			selectSlide(finishSlide);
 		}
 	}
 }
