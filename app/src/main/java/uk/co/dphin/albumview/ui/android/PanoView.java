@@ -6,7 +6,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.provider.DocumentFile;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import uk.co.dphin.albumview.R;
@@ -31,7 +34,7 @@ public class PanoView extends Activity {
     /**
      * The image path to display
      */
-    private File imagePath;
+    private DocumentFile image;
 
     /**
      * The dimensions of the full-size image
@@ -72,11 +75,17 @@ public class PanoView extends Activity {
 
         setContentView(R.layout.panoview);
 
-        imagePath = (File)(getIntent().getSerializableExtra("file"));
+        image = DocumentFile.fromSingleUri(this, Uri.parse(getIntent().getStringExtra("file")));
         // TODO: Move image handling code to a separate class. AndroidImageDisplayer is too coupled to the activities
         BitmapFactory.Options metadataOpts = new BitmapFactory.Options();
         metadataOpts.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(imagePath.getAbsolutePath(), metadataOpts);
+        Bitmap img;
+        try {
+            img = BitmapFactory.decodeStream(
+                    getContentResolver().openInputStream(image.getUri()));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace(); // TODO: Set default image not found graphic
+        }
         imageDimensions = new Dimension(metadataOpts.outWidth, metadataOpts.outHeight);
         screenDimensions = new Dimension(2048,1536); // TODO: Screen dimensions
 
@@ -111,7 +120,7 @@ public class PanoView extends Activity {
 
         try {
         final ImageView panoImageView = (ImageView)this.findViewById(R.id.panoImageView);
-            panoImageView.setImageDrawable(createLargeDrawable(imagePath, scaleRatio));
+            panoImageView.setImageDrawable(createLargeDrawable(image, scaleRatio));
             panoImageView.setOnTouchListener(new View.OnTouchListener()
             {
                 float startX, startY;
@@ -212,13 +221,16 @@ public class PanoView extends Activity {
      * @param scaleRatio Ratio to scale the image by to fit the screen
      * @return
      */
-    private Drawable createLargeDrawable(File source, double scaleRatio) throws IOException
+    private Drawable createLargeDrawable(DocumentFile source, double scaleRatio) throws IOException
     {
         // Scale the input bitmap to fit the screen
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = false;
         options.inSampleSize = 1; // TODO
-        Bitmap preScaleBitmap = BitmapFactory.decodeFile(imagePath.getAbsolutePath(), options);
+        Bitmap preScaleBitmap = BitmapFactory.decodeStream(
+                getContentResolver().openInputStream(image.getUri()),
+                null,
+                options);
         Bitmap scaledBitmap = Bitmap.createScaledBitmap(
                 preScaleBitmap,
                 renderDimensions.width,

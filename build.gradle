@@ -2,16 +2,18 @@
 buildscript {
     repositories {
         jcenter()
+        google()
         mavenCentral()
         maven { url 'http://guardian.github.com/maven/repo-releases' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
+        classpath 'com.android.tools.build:gradle:3.2.1'
     }
 }
 
 allprojects {
     repositories {
         jcenter()
+        google()
     }
 }

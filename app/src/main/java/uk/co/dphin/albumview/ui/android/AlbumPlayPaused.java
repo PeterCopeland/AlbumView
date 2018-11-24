@@ -30,7 +30,7 @@ public class AlbumPlayPaused extends SlideListing
 	
 	private final int PLAY_ALBUM = 100;
 	
-	private AlbumManager albMan = new AlbumManager();
+	private AlbumManager albMan = new AlbumManager(this);
 	
     /** Called when the activity is first created. */
     @Override

@@ -4,6 +4,8 @@ package uk.co.dphin.albumview.logic;
  * Created by peter on 24/08/17.
  */
 
+import android.content.Context;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
@@ -15,6 +17,9 @@ import uk.co.dphin.albumview.models.Slide;
  * Sort an album by filename
  */
 public class SlideNameSorter extends SlideSorter {
+    public SlideNameSorter(Context context) {
+        super(context);
+    }
     public List<Slide> sortSlides(List<Slide> slides)
     {
         List<Slide> outputSlides = new ArrayList<>(slides.size());

@@ -136,6 +136,9 @@ public class Album
      */
 	public void moveSlideBefore(Slide moveThis, Slide putBefore)
 	{
+		if (moveThis == putBefore) {
+			return; // Keep it in the same place
+		}
 		slides.remove(moveThis);
 
 		// No shortcut to just put it before the target slide, we have to get the target slide's index

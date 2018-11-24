@@ -139,7 +139,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 	{
 		super.onStart();
 		
-		AlbumManager albMan = new AlbumManager();
+		AlbumManager albMan = new AlbumManager(this);
 		albMan.getReadableDatabase(this);
 		album = albMan.loadAlbum(getIntent().getIntExtra("album", 0));
 		albMan.closeDB();
@@ -346,7 +346,7 @@ public class AlbumPlay extends Activity implements GestureDetector.OnGestureList
 			return;
 			
 		Intent panoIntent = new Intent(AlbumPlay.this, PanoView.class);
-		panoIntent.putExtra("file", new File(is.getImagePath()));
+		panoIntent.putExtra("file", is.getFile().getUri());
 		startActivity(panoIntent);
 	}
 	

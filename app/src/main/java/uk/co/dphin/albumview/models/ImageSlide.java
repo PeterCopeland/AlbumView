@@ -1,4 +1,5 @@
 package uk.co.dphin.albumview.models;
+import android.support.v4.provider.DocumentFile;
 import android.util.Log;
 
 import java.io.File;
@@ -8,12 +9,11 @@ import uk.co.dphin.albumview.displayers.android.*;
 
 public class ImageSlide extends Slide
 {
-	private String imagePath;
+	private DocumentFile file;
 	private ImageDisplayer disp;
 	
 	public ImageDisplayer getDisplayer()
 	{
-		// TODO: Get correct displayer for the system
 		if (disp == null)
 		{
 			disp = new AndroidImageDisplayer(this);
@@ -23,19 +23,17 @@ public class ImageSlide extends Slide
 
 	public String getFileName()
 	{
-		File file = new File(imagePath);
 		return file.getName();
 	}
-	
-	public String getImagePath()
+
+	public DocumentFile getFile()
 	{
-		return imagePath;
+		return file;
 	}
-	
-	public void setImagePath(String p)
+
+	public void setFile(DocumentFile f)
 	{
-		// TODO: Check?
-		imagePath = p;
+		file = f;
 	}
-	
+
 }

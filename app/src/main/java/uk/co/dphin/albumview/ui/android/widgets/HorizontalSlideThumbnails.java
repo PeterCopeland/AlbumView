@@ -84,6 +84,43 @@ public class HorizontalSlideThumbnails extends HorizontalScrollView implements V
 		album = a;
 		updateAlbumView();
 	}
+
+	public View makeThumbnail(Slide slide, int viewId)
+    {
+        // TODO: Use same as main view
+        AndroidDisplayer disp = (AndroidDisplayer)slide.getDisplayer();
+        disp.setPlayContext(context);
+
+        final View thumbnail = disp.getView(Displayer.Size_Thumb);
+        thumbnail.setId(viewId); // Get i, then increment for the next slide
+        makeThumbnailClickable(thumbnail);
+
+        return thumbnail;
+
+        //ImageView testIV = new ImageView(context);
+        //testIV.setImageBitmap(((AndroidImageDisplayer)disp).getImage(Displayer.Size_Thumb));
+        //testIV.setAlpha(0.5f);
+        //contents.addView(testIV);
+    }
+
+    private void makeThumbnailClickable(View thumbnail)
+    {
+        thumbnail.setOnClickListener(new OnClickListener() {
+            public void onClick(View v)
+            {
+                Toast.makeText(HorizontalSlideThumbnails.this.getContext(), "clicked item", Toast.LENGTH_SHORT).show();
+                // Add an image if we're missing one when the item is clicked
+                Slide clickedSlide = album.getSlides().get(v.getId());
+                AndroidDisplayer disp = (AndroidDisplayer)clickedSlide.getDisplayer();
+                if (!disp.isSizeLoaded(Displayer.Size_Thumb)) {
+                    disp.load(Displayer.Size_Thumb);
+                }
+                context.selectSlide(v);
+            }
+        });
+    }
+
+
 	
 	public void updateAlbumView()
 	{
@@ -91,79 +128,18 @@ public class HorizontalSlideThumbnails extends HorizontalScrollView implements V
 		int i=0;
 		for (Slide s : album.getSlides())
 		{
-			// TODO: Use same as main view
-			AndroidDisplayer disp = (AndroidDisplayer)s.getDisplayer();
-			disp.setPlayContext(context);
-			
-			final View view = disp.getView(Displayer.Size_Thumb);
-			view.setId(i++); // Get i, then increment for the next slide
-			view.setOnClickListener(new OnClickListener() {
-					public void onClick(View v)
-					{
-						Toast.makeText(HorizontalSlideThumbnails.this.getContext(), "clicked item", Toast.LENGTH_SHORT).show();
-						// Add an image if we're missing one when the item is clicked
-						Slide clickedSlide = album.getSlides().get(v.getId());
-						AndroidDisplayer disp = (AndroidDisplayer)clickedSlide.getDisplayer();
-						if (!disp.isSizeLoaded(Displayer.Size_Thumb)) {
-							disp.load(Displayer.Size_Thumb);
-						}
-						context.selectSlide(v);
-					}
-				});
-			view.setOnLongClickListener(new OnLongClickListener() {
-				@Override
-				public boolean onLongClick(View v) {
-					// TODO: Is it better to represent the dragged slide as the slide itself, or its number?
-					Slide draggedSlide = album.getSlides().get(v.getId());
-					ClipData.Item item = new ClipData.Item(new Integer(v.getId()).toString());
-					ClipData dragData = ClipData.newPlainText(item.getText(), item.getText());
-					View.DragShadowBuilder shadow = new View.DragShadowBuilder(v);
-					v.startDrag(dragData, shadow, draggedSlide, 0);
+			View thumbnail = makeThumbnail(s, i++);
 
-					return true;
-				}
-			});
-			view.setOnDragListener(this);
-			// Drag over the sort options to scroll left
-			View sortOptions = ((Activity)getContext()).findViewById(R.id.sortOptions);
-			sortOptions.setOnDragListener(new OnDragListener() {
-				@Override
-				public boolean onDrag(View v, DragEvent event) {
-					switch(event.getAction()) {
-						case DragEvent.ACTION_DRAG_LOCATION:
-							HorizontalSlideThumbnails.this.scrollBy((10*-1), 0);
-					}
-					return true;
-				}
-			});
-
-			// Drag over the add options to scroll right
-			View addOptions = ((Activity)getContext()).findViewById(R.id.addOptions);
-			addOptions.setOnDragListener(new OnDragListener() {
-				@Override
-				public boolean onDrag(View v, DragEvent event) {
-					switch(event.getAction()) {
-						case DragEvent.ACTION_DRAG_LOCATION:
-							HorizontalSlideThumbnails.this.scrollBy(10, 0);
-					}
-					return true;
-				}
-			});
-			if (view.getParent() != null)
+			if (thumbnail.getParent() != null)
 			{
-				((ViewGroup)view.getParent()).removeView(view);
+				((ViewGroup)thumbnail.getParent()).removeView(thumbnail);
 			}
-			
-			if (view.getParent() == null)
+
+			if (thumbnail.getParent() == null)
 			{
-				contents.addView(view);
+				contents.addView(thumbnail);
 				invalidate();
 			}
-			
-			//ImageView testIV = new ImageView(context);
-			//testIV.setImageBitmap(((AndroidImageDisplayer)disp).getImage(Displayer.Size_Thumb));
-			//testIV.setAlpha(0.5f);
-			//contents.addView(testIV);
 		}
 		
 		updateDisplay(getScrollX());
@@ -248,6 +224,10 @@ public class HorizontalSlideThumbnails extends HorizontalScrollView implements V
 				break;
 		}
 		return true;
+	}
+
+	public Album getAlbum() {
+		return album;
 	}
 
 	private class SlideDragListener implements View.OnDragListener

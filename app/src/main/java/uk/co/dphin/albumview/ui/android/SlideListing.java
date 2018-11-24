@@ -63,8 +63,12 @@ public abstract class SlideListing extends Activity
 				Log.i("AlbumPlayLoad", "GlobalLayoutListener triggered on filmstrip");
 				int width = wrapper.getWidth();
 				int height = wrapper.getHeight();
-				
-				filmstrip = new HorizontalSlideThumbnails(SlideListing.this);
+
+				if (SlideListing.this instanceof AlbumEdit) {
+					filmstrip = new EditableSlideThumbnails(SlideListing.this);
+				} else {
+					filmstrip = new HorizontalSlideThumbnails(SlideListing.this);
+				}
 				filmstrip.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 
 				// android:onClick="selectSlide" >
@@ -82,8 +86,28 @@ Log.i("AlbumPlayLoad", "Filmstrip GLL: Added views");
 Log.i("AlbumPlayLoad", "Filmstrip GLL: Set contents");
 				filmstrip.setAlbum(album);
 Log.i("AlbumPlayLoad", "Filmstrip GLL: Set album");
+
+// Wait for the image view & filmstrip containers to initialise so we can get their dimensions
+				final ImageView imgView = (ImageView)findViewById(R.id.imageView);
+				ViewTreeObserver vto = imgView.getViewTreeObserver();
+				vto.addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+					@Override
+					public void onGlobalLayout() {
+						Log.i("AlbumPlayLoad", "GlobalLayoutListener triggered on main image");
+						// Load & display the image
+						Controller.getController().setSize(Displayer.Size_Medium, new Dimension(imgView.getWidth(), imgView.getHeight()));
+
+						// Prevent this from repeating on future updates
+						ViewTreeObserver obs = imgView.getViewTreeObserver();
+						//if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+						//	obs.removeOnGlobalLayoutListener(this);
+						//} else {
+						obs.removeGlobalOnLayoutListener(this);
+						//}
+						Log.i("AlbumPlayLoad", "GlobalLayoutListener triggered on main image - done");
+					}
+				});
 				
-				ViewTreeObserver vto = wrapper.getViewTreeObserver();
 				vto.removeGlobalOnLayoutListener(this);
 
 				updateThumbnails();
@@ -104,30 +128,9 @@ Log.i("AlbumPlayLoad", "Filmstrip GLL: Set album");
 			final AndroidImageDisplayer disp = (AndroidImageDisplayer)getActiveSlide().getDisplayer();
 			disp.setPlayContext(this);
 
-			// Wait for the image view & filmstrip containers to initialise so we can get their dimensions
-			final ImageView imgView = (ImageView)findViewById(R.id.imageView);
-			ViewTreeObserver vto = imgView.getViewTreeObserver();
-			vto.addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
-				@Override
-				public void onGlobalLayout() {
-					Log.i("AlbumPlayLoad", "GlobalLayoutListener triggered on main image");
-					// Load & display the image
-					Controller.getController().setSize(Displayer.Size_Medium, new Dimension(imgView.getWidth(), imgView.getHeight()));
-
-					disp.load(Displayer.Size_Medium);
-
-					imgView.setImageBitmap(disp.getImage(Displayer.Size_Medium));
-
-					// Prevent this from repeating on future updates
-					ViewTreeObserver obs = imgView.getViewTreeObserver();
-					//if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-					//	obs.removeOnGlobalLayoutListener(this);
-					//} else {
-					obs.removeGlobalOnLayoutListener(this);
-					//}
-					Log.i("AlbumPlayLoad", "GlobalLayoutListener triggered on main image - done");
-				}
-			});
+			disp.load(Displayer.Size_Medium);
+			ImageView imgView = (ImageView)findViewById(R.id.imageView);
+			imgView.setImageBitmap(disp.getImage(Displayer.Size_Medium));
 
 
 		}
@@ -216,11 +219,14 @@ Log.i("AlbumPlayLoad", "Filmstrip GLL: Set album");
 	
 	protected void updateImage()
 	{
+		if (getActiveSlide() == null) {
+			return;
+		}
+
 		Log.i("SlideListing", "Updating slide");
 		AndroidImageDisplayer disp = (AndroidImageDisplayer)getActiveSlide().getDisplayer();
 		ImageView imgView = (ImageView)findViewById(R.id.imageView);
 		Log.i("SlideListing", "Image view: "+imgView.getId());
-		imgView.setBackgroundColor(Color.RED);
 		disp.load(Displayer.Size_Medium);
 
 		imgView.setImageBitmap(disp.getImage(Displayer.Size_Medium));
