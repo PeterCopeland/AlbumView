@@ -1,10 +1,12 @@
 package uk.co.dphin.albumview.displayers.android;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.*;
+import android.support.v4.provider.DocumentFile;
 import android.util.Log;
 import android.view.View;
 import android.widget.*;
@@ -37,7 +39,7 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	/**
 	 * Path to the image for this slide
 	 */
-	private String imagePath;
+	private DocumentFile image;
 	
 	private int imageWidth = -1;
 	private int imageHeight = -1;
@@ -47,7 +49,7 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	public AndroidImageDisplayer(ImageSlide s)
 	{
 		super(s);
-		imagePath = s.getImagePath();
+		image = s.getFile();
 		images = new HashMap<Dimension, Bitmap>();
 		views = new HashMap<Dimension, FrameLayout>();
 	}
@@ -103,62 +105,59 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 			// Image smaller than we need, so load the image as normal
 			options.inSampleSize = 1;
 		}
-		
-		Bitmap img = BitmapFactory.decodeFile(imagePath, options);
-		
-		if (img == null)
-		{
-			Log.w("Load image", "Could not load image "+imagePath);
-			return;
-		}
-		
-		// Rotate the image to fill the screen (full size only). Must use un-rotated dimensions here.
-		if (size >= Displayer.Size_Screen && this.imageHeight > this.imageWidth)
-		{
-			Matrix rotate = new Matrix();
-			rotate.postRotate(90);
-			img = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), rotate, true);
-		}
-				
-		// Resize to fit dimensions (in case decoded file is larger than max texture size)
-		if (dim.width > 0 && dim.height > 0 && (img.getWidth() > dim.width || img.getHeight() > dim.height))
-		{
-			// Calculate target dimensions so that the image JUST fits the available space
-			double imgAR = (double)img.getWidth()/(double)img.getHeight();
-			double outAR = (double)dim.width/(double)dim.height;
-			int resizeW, resizeH;
-			if (imgAR > outAR)
-			{
-				// Image is wider than display, fit width
-				resizeW = dim.width;
-				resizeH = (int)((double)resizeW/imgAR);
-			}
-			else
-			{
-				// Image is taller than display, fit height
-				resizeH = dim.height;
-				resizeW = (int)((double)resizeH * imgAR);
+
+		try {
+			Bitmap img = BitmapFactory.decodeStream(
+					getPlayContext().getContentResolver().openInputStream(image.getUri()));
+
+			if (img == null) {
+				Log.w("Load image", "Could not load image " + image);
+				return;
 			}
 
-			img = Bitmap.createScaledBitmap(img, resizeW, resizeH, false);
-		}
-		
-		images.put(dim, img);
-		
-		// If the view for this size already exists, add the image
-		synchronized(views)
-		{
-			if (getPlayContext() instanceof Activity && views.containsKey(dim))
-			{
-				Activity context = (Activity)getPlayContext();
-				context.runOnUiThread(new Runnable() {
-					
-					@Override
-					public void run() {
-						getView(size);
-					}
-				});
+			// Rotate the image to fill the screen (full size only). Must use un-rotated dimensions here.
+			if (size >= Displayer.Size_Screen && this.imageHeight > this.imageWidth) {
+				Matrix rotate = new Matrix();
+				rotate.postRotate(90);
+				img = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), rotate, true);
 			}
+
+			// Resize to fit dimensions (in case decoded file is larger than max texture size)
+			if (dim.width > 0 && dim.height > 0 && (img.getWidth() > dim.width || img.getHeight() > dim.height)) {
+				// Calculate target dimensions so that the image JUST fits the available space
+				double imgAR = (double) img.getWidth() / (double) img.getHeight();
+				double outAR = (double) dim.width / (double) dim.height;
+				int resizeW, resizeH;
+				if (imgAR > outAR) {
+					// Image is wider than display, fit width
+					resizeW = dim.width;
+					resizeH = (int) ((double) resizeW / imgAR);
+				} else {
+					// Image is taller than display, fit height
+					resizeH = dim.height;
+					resizeW = (int) ((double) resizeH * imgAR);
+				}
+
+				img = Bitmap.createScaledBitmap(img, resizeW, resizeH, false);
+			}
+
+			images.put(dim, img);
+
+			// If the view for this size already exists, add the image
+			synchronized (views) {
+				if (getPlayContext() instanceof Activity && views.containsKey(dim)) {
+					Activity context = (Activity) getPlayContext();
+					context.runOnUiThread(new Runnable() {
+
+						@Override
+						public void run() {
+							getView(size);
+						}
+					});
+				}
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -168,23 +167,31 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	 */
 	private void loadMetaData()
 	{
-		if (this.imagePath != null && imageWidth < 0)
-		{
-			// Check the size of the image, which determines scale factors when we load
-			BitmapFactory.Options options = new BitmapFactory.Options();
-			options.inJustDecodeBounds = true;
-			BitmapFactory.decodeFile(imagePath, options);
-			
-			imageHeight = options.outHeight;
-			imageWidth = options.outWidth;
-			imagePortrait = (options.outHeight > options.outWidth);
-			
-			// Consider an image panoramic if it's wider than about 16:9.
-			if (imagePortrait)
-				imagePanoramic = (((float)imageHeight/(float)imageWidth) > 1.8);
-			else
-				imagePanoramic = (((float)imageWidth/(float)imageHeight) > 1.8);
-			
+		try {
+			if (this.image != null && imageWidth < 0)
+			{
+				// Check the size of the image, which determines scale factors when we load
+				BitmapFactory.Options options = new BitmapFactory.Options();
+				options.inJustDecodeBounds = true;
+				BitmapFactory.decodeStream(
+						getPlayContext().getContentResolver().openInputStream(image.getUri()),
+						null,
+						options
+				);
+
+				imageHeight = options.outHeight;
+				imageWidth = options.outWidth;
+				imagePortrait = (options.outHeight > options.outWidth);
+
+				// Consider an image panoramic if it's wider than about 16:9.
+				if (imagePortrait)
+					imagePanoramic = (((float)imageHeight/(float)imageWidth) > 1.8);
+				else
+					imagePanoramic = (((float)imageWidth/(float)imageHeight) > 1.8);
+
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -212,12 +219,12 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 		}
 		if (images.containsKey(dim))
 		{
-			Log.d("Unload", imagePath+": unloaded size "+size+" at "+dim);
+			Log.d("Unload", image +": unloaded size "+size+" at "+dim);
 			Bitmap img = images.get(dim);
 			images.remove(dim);
 		}
 		else
-			Log.w("Unload", imagePath+": can't unload size "+size+" at "+dim);
+			Log.w("Unload", image +": can't unload size "+size+" at "+dim);
 	}
 	
 	/**
@@ -231,9 +238,9 @@ public class AndroidImageDisplayer extends AndroidDisplayer implements ImageDisp
 	 * TODO: Rename this method to avoid confusion with private void loadImage
 	 * @param imagePath Path to the image
 	 */
-	public void setImage(String imagePath)
+	public void setImage(File imagePath)
 	{
-		this.imagePath = imagePath;
+		this.image = DocumentFile.fromFile(imagePath);
 	}
 			
 	public View getView(int size)

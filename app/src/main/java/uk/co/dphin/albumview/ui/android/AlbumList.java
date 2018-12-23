@@ -31,7 +31,7 @@ public class AlbumList extends Activity
      */
     public void previewAlbum(int albumID)
     {
-        AlbumManager albMan = new AlbumManager();
+        AlbumManager albMan = new AlbumManager(this);
         albMan.getReadableDatabase(this);
         ((AlbumPreview)getFragmentManager().findFragmentById(R.id.preview)).previewAlbum(albMan.loadAlbum(albumID));
 		albMan.closeDB();

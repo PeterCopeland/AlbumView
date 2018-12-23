@@ -1,4 +1,6 @@
 package uk.co.dphin.albumview.models;
+import android.content.Context;
+import android.support.v4.provider.DocumentFile;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -13,6 +15,7 @@ import com.drew.metadata.iptc.IptcDirectory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,14 +23,16 @@ import java.util.List;
 import uk.co.dphin.albumview.displayers.*;
 import uk.co.dphin.albumview.displayers.android.*;
 
-public class ImageSlide extends Slide
+public abstract class ImageSlide extends Slide
 {
-	private String imagePath;
+	public ImageSlide(Context c) {
+		super(c);
+	}
+
 	private ImageDisplayer disp;
 	
 	public ImageDisplayer getDisplayer()
 	{
-		// TODO: Get correct displayer for the system
 		if (disp == null)
 		{
 			disp = new AndroidImageDisplayer(this);
@@ -35,22 +40,7 @@ public class ImageSlide extends Slide
 		return disp;
 	}
 
-	public String getFileName()
-	{
-		File file = new File(imagePath);
-		return file.getName();
-	}
-	
-	public String getImagePath()
-	{
-		return imagePath;
-	}
-	
-	public void setImagePath(String p)
-	{
-		// TODO: Check?
-		imagePath = p;
-	}
+	public abstract String getFileName();
 
 	/**
 	 * Gets the best possible date for this image.
@@ -78,7 +68,7 @@ public class ImageSlide extends Slide
 		Date date;
 		try {
 			// TODO: Store metadata somewhere (or image stream) so we don't read multiple times per slide
-			Metadata metadata = ImageMetadataReader.readMetadata(new File(getImagePath()));
+			Metadata metadata = ImageMetadataReader.readMetadata(getFileContent());
 			date = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class).getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
 			if (date == null)
 			{
@@ -96,16 +86,13 @@ public class ImageSlide extends Slide
 	 *
 	 * @return Date last modified
      */
-	public Date getFileModifiedDate()
-	{
-		return new Date(new File(getImagePath()).lastModified());
-	}
+	public abstract Date getFileModifiedDate();
 
 	public String getHeading()
 	{
 		String title = "";
 		try {
-			Metadata metadata = ImageMetadataReader.readMetadata(new File(getImagePath()));
+			Metadata metadata = ImageMetadataReader.readMetadata(getFileContent());
 			IptcDirectory iptc = metadata.getFirstDirectoryOfType(IptcDirectory.class);
 			if (iptc != null) {
 				title = iptc.getString(IptcDirectory.TAG_OBJECT_NAME);
@@ -126,7 +113,7 @@ public class ImageSlide extends Slide
 	{
 		String caption = "";
 		try {
-			Metadata metadata = ImageMetadataReader.readMetadata(new File(getImagePath()));
+			Metadata metadata = ImageMetadataReader.readMetadata(getFileContent());
 			IptcDirectory iptc = metadata.getFirstDirectoryOfType(IptcDirectory.class);
 			if (iptc != null) {
 				caption = iptc.getString(IptcDirectory.TAG_CAPTION);
@@ -150,7 +137,7 @@ public class ImageSlide extends Slide
 	{
 		GeoLocation loc = null;
 		try {
-			Metadata metadata = ImageMetadataReader.readMetadata(new File(getImagePath()));
+			Metadata metadata = ImageMetadataReader.readMetadata(getFileContent());
 			GpsDirectory gps = metadata.getFirstDirectoryOfType(GpsDirectory.class);
 			if (gps != null) {
 				loc = gps.getGeoLocation();
@@ -165,5 +152,8 @@ public class ImageSlide extends Slide
 		}
 		return loc;
 	}
-	
+
+
+	public abstract InputStream getFileContent();
+
 }

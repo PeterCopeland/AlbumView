@@ -8,6 +8,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+import android.support.v4.provider.DocumentFile;
+
 import uk.co.dphin.albumview.models.*;
 
 public class AlbumManager {
@@ -15,6 +18,10 @@ public class AlbumManager {
 	private Context context;
 	private StorageOpenHelper dbHelper;
 	private SQLiteDatabase db;
+
+	public AlbumManager(Context c) {
+		context = c;
+	}
 	
 	public SQLiteDatabase getReadableDatabase(Context c)
 	{
@@ -74,8 +81,9 @@ public class AlbumManager {
 		while (slideCursor.moveToNext())
 		{
 			// TODO: Work with other slides - will need to add type to DB
-			ImageSlide slide = new ImageSlide();
-			slide.setImagePath(slideCursor.getString(slideCursor.getColumnIndexOrThrow(AlbumViewContract.Slide.ColumnNameImage)));
+			ImageSlide slide = new ImageSlide(context);
+			String uri = slideCursor.getString(slideCursor.getColumnIndexOrThrow(AlbumViewContract.Slide.ColumnNameImage));
+			slide.setFile(DocumentFile.fromSingleUri(context, Uri.parse(uri)));
 			
 			// Load music
 			String[] musicArgs = {Long.toString(slideCursor.getLong(slideCursor.getColumnIndex(AlbumViewContract.Slide._ID)))};
@@ -179,7 +187,7 @@ public class AlbumManager {
 		ContentValues cv = new ContentValues();
 		cv.put(AlbumViewContract.Slide.ColumnNameAlbum, album.getID());
 		if (slide instanceof ImageSlide)
-			cv.put(AlbumViewContract.Slide.ColumnNameImage, ((ImageSlide)slide).getImagePath());
+			cv.put(AlbumViewContract.Slide.ColumnNameImage, ((ImageSlide)slide).getFile().getUri().toString());
 		cv.put(AlbumViewContract.Slide.ColumnNameOrder, order);
 		long slideid = db.insertOrThrow(AlbumViewContract.Slide.TableName, null, cv);
 		

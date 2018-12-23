@@ -122,7 +122,7 @@ public abstract class AlbumPlay extends Activity implements MediaPlayer.OnComple
 	{
 		super.onStart();
 		
-		AlbumManager albMan = new AlbumManager();
+		AlbumManager albMan = new AlbumManager(this);
 		albMan.getReadableDatabase(this);
 		album = albMan.loadAlbum(getIntent().getIntExtra("album", 0));
 		albMan.closeDB();
@@ -167,7 +167,7 @@ public abstract class AlbumPlay extends Activity implements MediaPlayer.OnComple
 	 * @return
 	 */
 	protected abstract int getDisplaySize();
-		
+
 	public void onBackPressed()
 	{
 		// Stop any music
@@ -191,7 +191,7 @@ public abstract class AlbumPlay extends Activity implements MediaPlayer.OnComple
 		super.onStop();
 
 		IncomingRequestHandler.getIncomingRequestHandler().unregisterSlideChangeListener(this);
-		
+
 		loader.emptyQueue();
 	}
 	
@@ -335,6 +335,17 @@ public abstract class AlbumPlay extends Activity implements MediaPlayer.OnComple
 			}
 		}
 
+	}
+
+	public void openPanorama(View view)
+	{
+		ImageSlide is = (ImageSlide)currentSlide;
+		if (is == null)
+			return;
+
+		Intent panoIntent = new Intent(AlbumPlay.this, PanoView.class);
+		panoIntent.putExtra("file", is.getFile().getUri());
+		startActivity(panoIntent);
 	}
 
 	protected abstract void cleanUpBeforeSlideChange();
@@ -489,5 +500,5 @@ public abstract class AlbumPlay extends Activity implements MediaPlayer.OnComple
 	protected Album getAlbum() { return album; }
 
 	protected int getIndex() { return index; }
-		
+
 }

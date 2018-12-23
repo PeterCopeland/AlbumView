@@ -1,8 +1,12 @@
 package uk.co.dphin.albumview.logic;
 
+import android.content.Context;
+import android.database.Cursor;
 import android.media.ExifInterface;
+import android.provider.DocumentsContract;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -20,6 +24,11 @@ import uk.co.dphin.albumview.models.Slide;
  */
 
 public class SlideDateSorter extends SlideSorter {
+
+    public SlideDateSorter(Context context) {
+        super(context);
+    }
+
     public List<Slide> sortSlides(List<Slide> slides)
     {
         List<Slide> outputSlides = new ArrayList<>(slides.size());

@@ -1,5 +1,7 @@
 package uk.co.dphin.albumview.models;
 
+import android.content.Context;
+
 import uk.co.dphin.albumview.displayers.*;
 
 import java.io.Serializable;
@@ -13,6 +15,12 @@ import java.util.Date;
 public abstract class Slide implements Serializable
 {
 	private MusicAction music;
+
+	private Context context;
+
+	public Slide(Context c) {
+		context = c;
+	}
 	
  	/**
 	 * Return a displayer for this slide, preparing it if necessary
@@ -43,4 +51,9 @@ public abstract class Slide implements Serializable
 	public abstract String getHeading();
 
 	public abstract String getCaption();
+
+	public Context getContext()
+	{
+		return context;
+	}
 }

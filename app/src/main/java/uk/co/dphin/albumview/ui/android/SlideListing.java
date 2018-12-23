@@ -64,8 +64,12 @@ public abstract class SlideListing extends Activity implements SlideChangeListen
 			{
 				int width = wrapper.getWidth();
 				int height = wrapper.getHeight();
-				
-				filmstrip = new HorizontalSlideThumbnails(SlideListing.this);
+
+				if (SlideListing.this instanceof AlbumEdit) {
+					filmstrip = new EditableSlideThumbnails(SlideListing.this);
+				} else {
+					filmstrip = new HorizontalSlideThumbnails(SlideListing.this);
+				}
 				filmstrip.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 
 				filmstripContents = new LinearLayout(SlideListing.this);
@@ -172,7 +176,7 @@ public abstract class SlideListing extends Activity implements SlideChangeListen
 					}
 				}.run();
 			}
-				
+
 			filmstrip.post(new Runnable()
 			{
 				public void run()
@@ -221,6 +225,11 @@ public abstract class SlideListing extends Activity implements SlideChangeListen
 
 	protected void updateImage()
 	{
+		if (getActiveSlide() == null) {
+			return;
+		}
+
+		Log.i("SlideListing", "Updating slide");
 		AndroidImageDisplayer disp = (AndroidImageDisplayer)getActiveSlide().getDisplayer();
 		ImageView imgView = (ImageView)findViewById(R.id.imageView);
 

@@ -1,5 +1,6 @@
 package uk.co.dphin.albumview.util;
 
+import android.content.Context;
 import android.util.Log;
 import android.util.Xml;
 
@@ -42,15 +43,12 @@ import uk.co.dphin.albumview.models.*;
 
 public class Exporter {
 
-    private boolean rewriteImageFilenames = false;
-
     private static final int BUFFER = 1024;
 
-    public static void exportAlbumAsZip(Album album, File destination)
+    public static void exportAlbumAsZip(Context context, Album album, File destination)
     {
         try {
             Exporter exporter = new Exporter();
-            exporter.setRewriteImageFilenames(true);
             String xml = exporter.exportAlbumAsXml(album);
             Map<Slide, Exception> failedSlides = new TreeMap<>(); // TODO: Output somewhere
 
@@ -80,18 +78,16 @@ public class Exporter {
                     slideNumber++;
                     if (slide instanceof ImageSlide) {
                         ImageSlide is = (ImageSlide) slide;
-                        String originalPath = is.getImagePath();
-                        String newName = generateNewFilename(originalPath, slideNumber);
+                        String originalName = is.getFileName();
+                        String newName = generateNewFilename(originalName, slideNumber);
                         ZipEntry imageEntry = new ZipEntry("images/"+newName);
                         output.putNextEntry(imageEntry);
 
-                        FileInputStream fileInput = new FileInputStream(is.getImagePath());
-                        BufferedInputStream bis = new BufferedInputStream(fileInput, BUFFER);
+                        BufferedInputStream bis = new BufferedInputStream(context.getContentResolver().openInputStream(is.getFile().getUri()), BUFFER);
                         while (bis.read(data, 0, BUFFER) != -1) {
                             output.write(data);
                         }
                         bis.close();
-                        fileInput.close();
                         output.flush();
                         Log.v("Export", "Stored image file "+newName);
                     }
@@ -200,13 +196,9 @@ public class Exporter {
         if (slide instanceof ImageSlide) {
             root.setAttribute("type", "image");
             ImageSlide is = (ImageSlide)slide;
-            String imagePath = is.getImagePath();
+            String imageName = is.getFileName();
             String srcPath;
-            if (rewriteImageFilenames) {
-                srcPath = generateNewFilename(imagePath, slideNumber);
-            } else {
-                srcPath = imagePath;
-            }
+            srcPath = generateNewFilename(imageName, slideNumber);
             Element srcEl = doc.createElement("src");
             srcEl.setTextContent(srcPath);
             root.appendChild(srcEl);
@@ -219,13 +211,5 @@ public class Exporter {
     {
         return String.format(Locale.getDefault(), "slide%04d", slideNumber) +
                 originalPath.substring(originalPath.lastIndexOf("."));
-    }
-
-    public boolean isRewriteImageFilenames() {
-        return rewriteImageFilenames;
-    }
-
-    public void setRewriteImageFilenames(boolean rewriteImageFilenames) {
-        this.rewriteImageFilenames = rewriteImageFilenames;
     }
 }

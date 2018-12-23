@@ -1,12 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 24
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         applicationId "uk.co.dphin.albumview"
-        minSdkVersion 23
-        targetSdkVersion 23
+        minSdkVersion 24
+        targetSdkVersion 24
         multiDexEnabled true
         resValue "string", "google_maps_key", (project.findProperty("GOOGLE_MAPS_API_KEY") ?: "")
     }
@@ -20,19 +21,17 @@ android {
 }
 
 repositories {
+    google()
     jcenter()
     mavenCentral()
-    google()
     maven { url 'http://guardian.github.com/maven/repo-releases' }
 }
 
 dependencies {
+    api 'com.android.support:support-v4:24.0.0'
     annotationProcessor 'com.google.auto.value:auto-value:1.1'
 
-    compile 'com.android.support:support-v4:23.0.0'
-    compile 'net.rdrei.android.dirchooser:library:3.2'
-
-    compile 'com.drewnoakes:metadata-extractor:2.10.1'
+    implementation 'com.drewnoakes:metadata-extractor:2.10.1'
 
     implementation 'com.google.android.gms:play-services-nearby:11+'
     implementation 'com.google.android.gms:play-services-maps:11.6.2'

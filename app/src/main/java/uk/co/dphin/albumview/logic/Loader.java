@@ -148,8 +148,6 @@ public class Loader extends Thread {
 		qa.slide = slide;
 		qa.size = size;
 		
-		String path = ((ImageSlide)slide).getImagePath();
-				
 		if (prioritise)
 			loadQueue.addFirst(qa);
 		else

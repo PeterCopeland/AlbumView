@@ -95,7 +95,7 @@ public class AlbumPreview extends Fragment {
     			builder.setPositiveButton("Delete",new DialogInterface.OnClickListener() {
 					
 					public void onClick(DialogInterface dialog, int which) {
-						AlbumManager albMan = new AlbumManager();
+						AlbumManager albMan = new AlbumManager(getContext());
 						albMan.getWritableDatabase(getActivity());
 						albMan.deleteAlbum(album.getID());
 						// TODO: Could this close a DB we're trying to use? Should we just close it in onStop()?

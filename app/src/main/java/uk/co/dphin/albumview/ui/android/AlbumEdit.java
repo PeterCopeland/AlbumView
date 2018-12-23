@@ -7,14 +7,11 @@ import android.database.*;
 import android.net.*;
 import android.os.*;
 import android.provider.*;
+import android.support.v4.provider.DocumentFile;
 import android.util.*;
 import android.view.*;
 import android.widget.*;
 
-import net.rdrei.android.dirchooser.DirectoryChooserActivity;
-import net.rdrei.android.dirchooser.DirectoryChooserConfig;
-
-import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
@@ -23,13 +20,12 @@ import uk.co.dphin.albumview.displayers.android.*;
 import uk.co.dphin.albumview.logic.*;
 import uk.co.dphin.albumview.models.*;
 import uk.co.dphin.albumview.storage.android.*;
-import uk.co.dphin.albumview.ui.android.DirectoryChooserDialog.*;
 import uk.co.dphin.albumview.ui.android.MusicSettings.*;
 
-public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, MusicSettingsListener
+public class AlbumEdit extends SlideListing implements MusicSettingsListener
 {
 	
-	private AlbumManager albMan = new AlbumManager();
+	private AlbumManager albMan = new AlbumManager(this);
 	
 	private FileLoader fileLoad;
 	
@@ -151,7 +147,7 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 	{
 		// Get an image
 		// TODO: Check matching app exists
-		Intent getImg = new Intent(Intent.ACTION_PICK);
+		Intent getImg = new Intent(Intent.ACTION_OPEN_DOCUMENT);
 		getImg.setType("image/*");
 		startActivityForResult(getImg, SELECT_IMAGE);
 	}
@@ -164,13 +160,13 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 
 	public void sortByName(View v)
 	{
-		album.sortSlides(new SlideNameSorter());
+		album.sortSlides(new SlideNameSorter(this));
 		updateThumbnails();
 	}
 
 	public void sortByDate(View v)
 	{
-		album.sortSlides(new SlideDateSorter());
+		album.sortSlides(new SlideDateSorter(this));
 		updateThumbnails();
 	}
 	
@@ -206,57 +202,38 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 	private void showDirectoryChooser()
 	{
 //		Log.i("AlbumEdit", "showDirectoryChooser start");
-		final Intent chooserIntent = new Intent(this, DirectoryChooserActivity.class);
-		final DirectoryChooserConfig config = DirectoryChooserConfig.builder()
-				.newDirectoryName("New Directory")
-				.allowReadOnlyDirectory(true)
-				.allowNewDirectoryNameModification(true)
-				.build();
-		chooserIntent.putExtra(DirectoryChooserActivity.EXTRA_CONFIG, config);
-
-		startActivityForResult(chooserIntent, SELECT_FOLDER);
+		Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+		i.addCategory(Intent.CATEGORY_DEFAULT);
+		startActivityForResult(Intent.createChooser(i, "Choose directory"), SELECT_FOLDER);
 //		Log.i("AlbumEdit", "showDirectoryChooser end");
 	}
 	
-	public void onChosenDir(String chosenDir)
+	public void onChosenDir(Uri chosenDir)
 	{
+		DocumentFile dir = DocumentFile.fromTreeUri(this, chosenDir);
 		// Scan all images in this directory and add them in alphabetical order by filename
-		File dir = new File(chosenDir);
 		// TODO: Connect to loader
 		fileLoad.addDirectory(dir);
 		
 	}
-	
-	private void addImage(String path)
-	{
-		
-		// TODO: Connect to loader
-		
-	}
-	
+
 	protected void onActivityResult(int requestCode, int resultCode, Intent returnedIntent)
 	{
 		if (requestCode == SELECT_IMAGE && resultCode == RESULT_OK && returnedIntent != null) {
 
 			// Convert the intent return data to a file path
 			Uri selectedImage = returnedIntent.getData();
-			String[] filePathColumn = {MediaStore.Images.Media.DATA};
-
-			Cursor cursor = getContentResolver().query(
-					selectedImage, filePathColumn, null, null, null);
-			cursor.moveToFirst();
-
-			int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-			String filePath = cursor.getString(columnIndex);
-			cursor.close();
+			DocumentFile imageFile = DocumentFile.fromSingleUri(this, selectedImage);
+			fileLoad.addImage(imageFile);
 
 			// Tell the filmstrip to update
 			updateThumbnails();
 
 			// Display the image in the main image preview
-			//updateImage();
-		} else if (requestCode == SELECT_FOLDER && resultCode == DirectoryChooserActivity.RESULT_CODE_DIR_SELECTED) {
-				onChosenDir(returnedIntent.getStringExtra(DirectoryChooserActivity.RESULT_SELECTED_DIR));
+			updateImage();
+		} else if (requestCode == SELECT_FOLDER) {
+
+			onChosenDir(returnedIntent.getData());
 		}
 	}
 	
@@ -318,14 +295,14 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 		if (hasMusic != null)
 			hasMusic.setVisibility(getActiveSlide().hasMusic() ? View.VISIBLE : View.INVISIBLE);
 	}
-	
+
 	/**
 	 * Handles loading files (for image slides) in a separate queue,
 	 * and can handle progress output if given appropriate widgets
 	 */
 	private class FileLoader extends Thread
 	{
-		private BlockingQueue<File> queue;
+		private BlockingQueue<DocumentFile> queue;
 		
 		private TextView textDisplay;
 		private ProgressBar progressDisplay;
@@ -341,7 +318,7 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 			numDone = 0;
 			numToDo = 0;
 			numTotal = 0;
-			queue = new LinkedBlockingQueue<File>();
+			queue = new LinkedBlockingQueue<DocumentFile>();
 		}
 		
 		public void setTextDisplay(TextView tv)
@@ -361,11 +338,11 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 				try
 				{
 					// Only wait for a limited time to allow watchers to keep track, and check if the queue is empty
-					File nextFile = queue.poll(3000, TimeUnit.MILLISECONDS);
+					DocumentFile nextFile = queue.poll(3000, TimeUnit.MILLISECONDS);
 					if (nextFile != null)
 					{
-						ImageSlide slide = new ImageSlide();
-						slide.setImagePath(nextFile.getPath());
+						ImageSlide slide = new ImageSlide(AlbumEdit.this);
+						slide.setFile(nextFile);
 						getAlbum().addSlide(slide);
 						
 						numToDo--;
@@ -453,7 +430,7 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 			}
 		}
 		
-		public synchronized void addImage(File f)
+		public synchronized void addImage(DocumentFile f)
 		{
 			// TODO: Check this is an image that we can display
 
@@ -463,7 +440,7 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 			updateProgress();
 		}
 		
-		public void addDirectory(File dir)
+		public void addDirectory(DocumentFile dir)
 		{
 			if (!dir.isDirectory())
 			{
@@ -472,35 +449,29 @@ public class AlbumEdit extends SlideListing implements ChosenDirectoryListener, 
 				return;
 			}
 
-			File[] files = dir.listFiles(new FileFilter() {
-				
+			TreeSet<DocumentFile> sortedFiles = new TreeSet<>(new Comparator<DocumentFile>() {
 				@Override
-				public boolean accept(File pathname) {
-					
-					if (pathname.isDirectory())
-						return false;
-					
-					String fileExt = pathname.getName().substring(pathname.getName().lastIndexOf(".")+1);
-					for (String ext: imgExtensions)
-					{
-						if (ext.equals(fileExt))
-							return true;
-					}
-					return false;
+				public int compare(DocumentFile documentFile, DocumentFile t1) {
+					return (documentFile.getName().compareTo(t1.getName()));
 				}
 			});
 
-			TreeSet<File> sortedFiles = new TreeSet<File>();
-			sortedFiles.addAll(Arrays.asList(files));
+			for (DocumentFile file : dir.listFiles()) {
+				if (file.isDirectory() || !file.getType().startsWith("image")) {
+					continue;
+				}
 
-			synchronized(this)
+				sortedFiles.add(file);
+			}
+
+			synchronized (this)
 			{
 				queue.addAll(sortedFiles);
-			
 				numTotal += sortedFiles.size();
 				numToDo += sortedFiles.size();
 				updateProgress();
 			}
+
 		}
 
 	}

@@ -127,7 +127,7 @@ public class AlbumPlayPhotos extends AlbumPlay implements GestureDetector.OnGest
             return;
 
         Intent panoIntent = new Intent(AlbumPlayPhotos.this, PanoView.class);
-        panoIntent.putExtra("file", new File(is.getImagePath()));
+        panoIntent.putExtra("uri", is.getFile().getUri());
         startActivity(panoIntent);
     }
 
